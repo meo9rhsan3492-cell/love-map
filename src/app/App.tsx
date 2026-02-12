@@ -1,0 +1,484 @@
+import { useState, useEffect } from 'react';
+import { useJourney } from '@/app/hooks/useJourney';
+import { useSound } from '@/app/hooks/useSound';
+import { Map as MapIcon, Settings, X, Plus, Calendar as CalendarIcon, Sparkles, LayoutGrid, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { toast, Toaster } from 'sonner';
+import { Button } from '@/app/components/ui/button';
+import { LoveTimer } from '@/app/components/LoveTimer';
+import { HeartRain } from '@/app/components/HeartRain';
+import { MusicPlayer } from '@/app/components/MusicPlayer';
+import { CursorTrail } from '@/app/components/CursorTrail';
+import { GlobalClickEffect } from '@/app/components/GlobalClickEffect';
+import { AtmosphericBackground } from '@/app/components/AtmosphericBackground';
+import { CinematicOverlay } from '@/app/components/CinematicOverlay';
+import { LandingPage } from '@/app/components/LandingPage';
+import { useSettings } from '@/app/hooks/useSettings';
+import type { Memory } from '@/app/types/memory';
+
+import { MapView } from '@/app/components/MapView';
+
+// Static imports to fix runtime error #321
+import { Timeline } from '@/app/components/Timeline';
+import { BucketList } from '@/app/components/BucketList';
+import { PolaroidWall } from '@/app/components/PolaroidWall';
+import { MemoryForm } from '@/app/components/MemoryForm';
+import { MemoryDetail } from '@/app/components/MemoryDetail';
+import { SettingsDialog } from '@/app/components/SettingsDialog';
+import { TravelTrivia } from '@/app/components/TravelTrivia';
+import { CinematicShutter } from '@/app/components/CinematicShutter';
+import { FloatingMemoryCard } from '@/app/components/FloatingMemoryCard';
+import { MilestoneBadge } from '@/app/components/MilestoneBadge';
+
+const STORAGE_KEY = 'couple-memories';
+
+export default function App() {
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [showLanding, setShowLanding] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
+  const [tempLocation, setTempLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
+  const [isPinning, setIsPinning] = useState(false);
+  // Mobile View Mode: 'map' | 'stats' | 'timeline' | 'future' | 'wall'
+  const [mobileView, setMobileView] = useState<'map' | 'stats' | 'timeline' | 'future' | 'wall'>('map');
+  // Desktop View Mode: 'map' | 'timeline' | 'future' | 'wall'
+  const [desktopView, setDesktopView] = useState<'map' | 'timeline' | 'future' | 'wall'>('map');
+
+  const { playPop, playSuccess } = useSound();
+
+  // Save to localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        setMemories(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse memories', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
+  }, [memories]);
+
+  const filteredMemories = memories;
+
+  const handleAddMemory = (newMemory: Omit<Memory, 'id' | 'createdAt'>) => {
+    const memory: Memory = {
+      ...newMemory,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    setMemories([memory, ...memories]);
+    setIsFormOpen(false);
+    setIsPinning(false); // Disable pin mode after adding
+    toast.success(memory.type === 'expectation' ? '未来心愿已许下 ✨' : '美好的回忆已记录 💖');
+    playSuccess();
+    if (memory.type === 'memory') setShowCelebration(true);
+  };
+
+  const handleUpdateMemory = (updatedMemory: Memory) => {
+    setMemories(memories.map(m => m.id === updatedMemory.id ? updatedMemory : m));
+    setSelectedMemory(null);
+    toast.success('回忆已更新 ✨');
+  };
+
+  const handleDeleteMemory = (id: string) => {
+    setMemories(memories.filter(m => m.id !== id));
+    setSelectedMemory(null);
+    toast.success('回忆已删除');
+  };
+
+  const handleCompleteWish = (completedMemory: Memory) => {
+    // Update memory (change type to memory, update date/desc)
+    setMemories(memories.map(m => m.id === completedMemory.id ? completedMemory : m));
+    toast.success('恭喜！心愿达成 🎉');
+    setShowCelebration(true); // Trigger confetti
+  };
+
+  const handleMapClick = (lat: number, lng: number) => {
+    if (!isPinning) return; // Only allow click when pinning mode is active
+
+    setTempLocation({ lat, lng });
+    if (!isFormOpen && !selectedMemory) {
+      setIsFormOpen(true); // Auto open form if nothing else active
+      toast.info("已选择地图位置 📍");
+    }
+  };
+
+  const handleMarkerClick = (memory: Memory) => {
+    setSelectedMemory(memory);
+  };
+
+  const handleEdit = () => {
+    toast.info('编辑功能开发中');
+  };
+
+  // Helper for stats and isMobile
+  const isMobile = window.innerWidth < 768; // Simple check for mobile
+  const setDesktopAddOpen = (isOpen: boolean) => setIsFormOpen(isOpen);
+
+  // Platform settings
+  const { settings, updateSettings } = useSettings();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Journey Hook
+  const {
+    journeyState,
+    journeyIndex,
+    activeMilestone,
+    currentDuration,
+    showTrivia,
+    showShutter,
+    handleStartJourney,
+    handleStopJourney,
+    handleIntroComplete,
+    handleOutroComplete
+  } = useJourney({
+    memories: filteredMemories,
+    onMemorySelect: setSelectedMemory
+  });
+
+  const onStartJourneyClick = () => {
+    setMobileView('map');
+    setDesktopView('map');
+    handleStartJourney();
+  };
+
+  // Journey Logic handled by useJourney hook
+
+  return (
+    <div className="flex flex-col h-[100dvh] bg-gray-900 text-editorial overflow-hidden font-sans selection:bg-rose-200 relative">
+      <AtmosphericBackground />
+
+      {/* Cinematic Overlays */}
+      <CinematicShutter active={showShutter} />
+      <TravelTrivia show={showTrivia} />
+
+      <AnimatePresence>
+        {journeyState === 'intro' && (
+          <CinematicOverlay type="intro" onComplete={handleIntroComplete} />
+        )}
+        {journeyState === 'outro' && (
+          <CinematicOverlay type="outro" onComplete={handleOutroComplete} memoriesCount={filteredMemories.length} />
+        )}
+      </AnimatePresence>
+
+      {/* Milestone Badge Overlay */}
+      <AnimatePresence>
+        {activeMilestone && (
+          <MilestoneBadge
+            type={activeMilestone.type}
+            title={activeMilestone.title}
+            subtitle={activeMilestone.subtitle}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Journey Progress Bar */}
+      {journeyState === 'playing' && (
+        <div className="fixed top-0 left-0 right-0 h-1 z-[9999] pointer-events-none">
+          <motion.div
+            key={journeyIndex} // Reset animation on index change
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: currentDuration / 1000, ease: 'linear' }}
+            className="h-full bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]"
+          />
+        </div>
+      )}
+
+      <AnimatePresence mode="sync">
+        {showLanding && (
+          <LandingPage onEnter={() => setShowLanding(false)} />
+        )}
+      </AnimatePresence>
+
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSave={updateSettings}
+      />
+
+      {/* Main App Content - Aerial Drop Animation */}
+      <motion.div
+        className="relative w-full h-full"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={!showLanding ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
+        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+      >
+        <Toaster position="top-center" />
+        <HeartRain isActive={showCelebration} onComplete={() => setShowCelebration(false)} />
+        {/* Hide Music Player in Journey Mode (or keep it?) - Let's fade it out to avoid distraction */}
+        <motion.div animate={{ opacity: journeyState === 'playing' ? 0 : 1, pointerEvents: journeyState === 'playing' ? 'none' : 'auto' }}>
+          <MusicPlayer autoPlayTrigger={!showLanding} />
+        </motion.div>
+
+        <GlobalClickEffect />
+        {!isMobile && <CursorTrail />}
+
+        {/* --- FULL SCREEN MAP BACKGROUND --- */}
+        <div className="absolute inset-0 z-0 bg-gray-900">
+          {/* --- FULL SCREEN MAP BACKGROUND --- */}
+          <div className="absolute inset-0 z-0 bg-gray-900">
+            {/* Sort memories for correct journey order (Time Ascending) */}
+            <MapView
+              memories={filteredMemories}
+              activeMemory={journeyState === 'playing' ? filteredMemories[journeyIndex] : null}
+              isPlaying={journeyState === 'playing'}
+              isPaused={showLanding} // Pause heavy map effects while on landing page
+              onMarkerClick={handleMarkerClick}
+              onMapClick={handleMapClick}
+              onStartJourney={onStartJourneyClick}
+              onStopJourney={handleStopJourney}
+            />
+          </div>
+        </div>
+
+        {/* --- OVERLAYS --- */}
+
+        {/* Polaroid Wall Overlay */}
+        <AnimatePresence>
+          {(isMobile ? mobileView === 'wall' : desktopView === 'wall') && (
+            <motion.div
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+              className="absolute inset-0 z-20 bg-stone-100" // Full screen for wall
+            >
+              <div className="absolute top-6 right-6 z-30">
+                <Button variant="ghost" size="icon" onClick={() => { setMobileView('map'); setDesktopView('map'); }} className="rounded-full bg-black/10 hover:bg-black/20 text-gray-800">
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+              <PolaroidWall memories={filteredMemories} onMemoryClick={handleMarkerClick} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Timeline Overlay */}
+        <AnimatePresence>
+          {(isMobile ? mobileView === 'timeline' : desktopView === 'timeline') && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="absolute inset-4 bottom-32 md:inset-x-20 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-white/50"
+            >
+              <div className="h-full overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-cute text-3xl text-gray-800">Has it really been this long?</h2>
+                  <Button variant="ghost" size="icon" onClick={() => { setMobileView('map'); setDesktopView('map'); }} className="rounded-full hover:bg-gray-100">
+                    <X className="w-6 h-6" />
+                  </Button>
+                </div>
+                <Timeline memories={filteredMemories} onMemoryClick={handleMarkerClick} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Future Overlay */}
+        <AnimatePresence>
+          {(isMobile ? mobileView === 'future' : desktopView === 'future') && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="absolute inset-4 bottom-32 md:inset-x-auto md:w-[600px] md:left-1/2 md:-translate-x-1/2 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-purple-100"
+            >
+              <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-gradient-to-b from-purple-50/50 to-white/50">
+                <div className="flex justify-end mb-2">
+                  <Button variant="ghost" size="icon" onClick={() => { setMobileView('map'); setDesktopView('map'); }} className="rounded-full hover:bg-purple-100">
+                    <X className="w-6 h-6 text-purple-400" />
+                  </Button>
+                </div>
+                <BucketList memories={memories} onComplete={handleCompleteWish} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Memory Detail View */}
+        <AnimatePresence>
+          {selectedMemory && (
+            <MemoryDetail
+              memory={selectedMemory}
+              isOpen={!!selectedMemory}
+              onClose={() => setSelectedMemory(null)}
+              onDelete={handleDeleteMemory}
+              onEdit={handleUpdateMemory}
+              isJourneyMode={journeyState === 'playing'}
+            />
+          )}
+        </AnimatePresence>
+
+
+        {/* --- FLOATING UI CONTROLS (Distraction Free Wrapper) --- */}
+        <motion.div
+          animate={{ opacity: journeyState === 'playing' ? 0 : 1, pointerEvents: journeyState === 'playing' ? 'none' : 'auto' }}
+          transition={{ duration: 0.5 }}
+        >
+
+          {/* Top Left: Brand / Title */}
+          <div className="absolute top-6 left-6 z-30 pointer-events-none">
+            <h1 className="font-black italic text-3xl md:text-5xl text-white tracking-tighter drop-shadow-lg"
+              style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+              Our <span className="text-pink-500">Love</span> Journal
+            </h1>
+            <LoveTimer startDate={settings.startDate} className="text-white/80 mt-2 text-sm font-bold glass-tag inline-block px-3 py-1 rounded-full backdrop-blur-md bg-black/20" />
+          </div>
+
+          {/* Top Right: Settings */}
+          <div className="absolute top-6 right-6 z-30">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => { playPop(); setIsSettingsOpen(true); }}
+              className="rounded-full bg-black/20 text-white hover:bg-black/40 backdrop-blur-md w-10 h-10 md:w-12 md:h-12 border border-white/10"
+            >
+              <Settings className="w-5 h-5 md:w-6 md:h-6" />
+            </Button>
+          </div>
+
+          {/* BOTTOM FLOATING DOCK */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 md:gap-8">
+
+            {/* Nav Bar Pill */}
+            <div className="bg-white/90 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center gap-1 md:gap-2 scale-90 md:scale-100 origin-bottom">
+              <NavButton
+                active={(isMobile ? mobileView : desktopView) === 'map'}
+                onClick={() => { setMobileView('map'); setDesktopView('map'); }}
+                icon={<MapIcon className="w-5 h-5" />}
+                label="地图"
+              />
+              <NavButton
+                active={(isMobile ? mobileView : desktopView) === 'wall'}
+                onClick={() => { setMobileView('wall'); setDesktopView('wall'); }}
+                icon={<LayoutGrid className="w-5 h-5" />}
+                label="墙"
+              />
+              <NavButton
+                active={(isMobile ? mobileView : desktopView) === 'timeline'}
+                onClick={() => { setMobileView('timeline'); setDesktopView('timeline'); }}
+                icon={<CalendarIcon className="w-5 h-5" />}
+                label="时光"
+              />
+              <NavButton
+                active={(isMobile ? mobileView : desktopView) === 'future'}
+                onClick={() => { setMobileView('future'); setDesktopView('future'); }}
+                icon={<Sparkles className="w-5 h-5" />}
+                label="未来"
+              />
+            </div>
+
+            {/* LOCATION PICKER TOGGLE */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                playPop();
+                const nextState = !isPinning;
+                setIsPinning(nextState);
+                if (nextState) {
+                  toast.info('点击地图任意位置添加回忆 📍', { duration: 3000 });
+                } else {
+                  toast.info('退出定位模式');
+                }
+              }}
+              className={`w-12 h-12 md:w-14 md:h-14 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex items-center justify-center border-2 transition-all duration-300 ${isPinning ? 'bg-rose-500 border-white text-white rotate-12 scale-110 ring-4 ring-rose-200' : 'bg-white border-white/50 text-gray-500 hover:bg-gray-50'}`}
+            >
+              <MapPin className="w-6 h-6" strokeWidth={2.5} />
+            </motion.button>
+
+            {/* BIG FAB (Quick Add) */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { playPop(); setDesktopAddOpen(true); }}
+              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-4 border-white/20"
+            >
+              <Plus className="w-8 h-8 md:w-10 md:h-10" strokeWidth={3} />
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Center Guide (If Empty) - Not wrapped because we might want it visible? actually wrap it too */}
+        {memories.length === 0 && journeyState !== 'playing' && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-black/40 backdrop-blur-md text-white px-6 py-4 rounded-full border border-white/20 text-center animate-pulse"
+            >
+              <p className="font-bold text-lg">Click the Pin button to start 📍</p>
+              <p className="text-sm opacity-80">Light up our first city 🌍</p>
+            </motion.div>
+          </div>
+        )}
+
+      </motion.div>
+
+      {/* Forms & Modals */}
+      <MemoryForm
+        isOpen={isFormOpen}
+        onClose={() => { setIsFormOpen(false); setIsPinning(false); }}
+        onSave={handleAddMemory}
+        initialPosition={tempLocation}
+      />
+
+      <AnimatePresence>
+        {selectedMemory && (
+          journeyState === 'playing' ? (
+            <motion.div
+              key="journey-card"
+              initial={{ opacity: 0, scale: 0.5, rotateY: 180 }}
+              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+              exit={{ opacity: 0, scale: 0.5, rotateY: -180 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-none"
+            >
+              <div className="pointer-events-auto">
+                <FloatingMemoryCard memory={selectedMemory} />
+              </div>
+            </motion.div>
+          ) : (
+            <MemoryDetail
+              key="detail-view"
+              memory={selectedMemory}
+              isOpen={!!selectedMemory}
+              onClose={() => {
+                setSelectedMemory(null);
+                if (journeyState === 'playing') handleStopJourney();
+              }}
+              onEdit={handleEdit}
+              onDelete={handleDeleteMemory}
+              isJourneyMode={false}
+            />
+          )
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Helper Components
+function NavButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+  const { playPop } = useSound();
+  return (
+    <button
+      onClick={() => { playPop(); onClick(); }}
+      className={`
+                relative px-4 py-3 rounded-full flex items-center gap-2 transition-all duration-300
+                ${active ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-100'}
+            `}
+    >
+      {icon}
+      <span className={`text-sm font-bold ${!active && 'hidden md:inline'}`}>{label}</span>
+      {active && <motion.div layoutId="nav-bg" className="absolute inset-0 bg-black rounded-full -z-10" />}
+    </button>
+  );
+}

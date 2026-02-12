@@ -1,0 +1,65 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+@import './leaflet.css';
+
+:root {
+    font-family: 'Quicksand', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* 噪点背景纹理 */
+    background-color: #fdf2f8;
+    /* 基础粉色背景 */
+    background-image:
+        linear-gradient(to bottom right, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0)),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Allow markers to glow outside their container */
+.custom-div-icon {
+    background: none;
+    border: none;
+    overflow: visible !important;
+}
+
+/* War Fog Effect */
+.fog-polygon {
+    /* 
+       1. Soften the shape edges (The "hole" edges will be blurry) 
+       Increased blurring for smoother transition
+    */
+    filter: blur(24px) url(#fog-noise);
+
+    /* 
+       2. Frosted Glass Effect (Blur the map UNDER the fog)
+       Also desaturate slightly to imply "unexplored territory"
+    */
+    backdrop-filter: blur(4px) grayscale(90%) brightness(0.6);
+
+    /* Ensure decent blending */
+    mix-blend-mode: normal;
+
+    transition: all 0.5s ease-in-out;
+}
