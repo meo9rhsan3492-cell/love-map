@@ -280,12 +280,12 @@ export function MapView({
         zoomControl={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          subdomains={['a', 'b', 'c', 'd']}
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+          subdomains={['1', '2', '3', '4']}
+          attribution='&copy; <a href="https://amap.com">高德地图</a>'
           className="saturate-[1.1] contrast-[1.05]"
           opacity={1}
-          maxNativeZoom={20}
+          maxNativeZoom={18}
           maxZoom={20}
           keepBuffer={20}
           updateWhenZooming={false}

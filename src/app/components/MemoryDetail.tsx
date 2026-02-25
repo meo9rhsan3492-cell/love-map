@@ -256,7 +256,7 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
               {/* PASSPORT STAMP (Journey Mode Only) */}
               {isJourneyMode && (
                 <PassportStamp
-                  locationName={memory.locationName || 'Unknown Place'}
+                  locationName={memory.locationName || '未知地点'}
                   date={memory.date}
                   index={Math.floor(Math.random() * 5)}
                   className="absolute right-[10%] bottom-[25%] sm:bottom-[15%] sm:right-[15%] flex items-center justify-center transform -rotate-12 scale-75 sm:scale-100 origin-bottom-right"

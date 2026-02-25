@@ -59,14 +59,20 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
         longitude: initialPosition.lng,
       }));
 
-      // Auto-fetch address (Reverse Geocoding)
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialPosition.lat}&lon=${initialPosition.lng}&zoom=18&addressdetails=1`, {
-        headers: { 'User-Agent': 'LoveJournal/1.0' }
+      // Auto-fetch address (Reverse Geocoding - Chinese)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialPosition.lat}&lon=${initialPosition.lng}&zoom=18&addressdetails=1&accept-language=zh`, {
+        headers: { 'User-Agent': 'LoveJournal/1.0', 'Accept-Language': 'zh-CN,zh' }
       })
         .then(res => res.json())
         .then(data => {
-          if (data && data.display_name) {
-            const name = data.address?.amenity || data.address?.building || data.display_name.split(',')[0];
+          if (data && data.address) {
+            const addr = data.address;
+            // Build 省-市-地点 format
+            const province = addr.state || addr.province || '';
+            const city = addr.city || addr.county || addr.town || '';
+            const poi = addr.amenity || addr.building || addr.road || addr.suburb || addr.village || '';
+            const parts = [province, city, poi].filter(Boolean);
+            const name = parts.length > 0 ? parts.join(' · ') : data.display_name?.split(',')[0] || '';
             setFormData(prev => ({ ...prev, locationName: name || prev.locationName }));
             toast.success(`已定位: ${name}`);
           }

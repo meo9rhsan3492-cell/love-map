@@ -27,7 +27,7 @@ function MobileMemoryCard({ memory }: FloatingMemoryCardProps) {
             </h3>
             <p className="text-neutral-500 text-sm mt-1 flex items-center gap-1">
                 <MapPin size={14} className="text-rose-500" />
-                {memory.locationName || "Somewhere on Earth"}
+                {memory.locationName || "未知地点"}
             </p>
 
             {/* Image */}
@@ -55,7 +55,7 @@ function MobileMemoryCard({ memory }: FloatingMemoryCardProps) {
             <div className="flex justify-between items-center mt-4 text-xs text-gray-500">
                 <span>{memory.latitude.toFixed(3)}°N, {memory.longitude.toFixed(3)}°E</span>
                 <span className="px-3 py-1 rounded-full bg-black text-white font-bold">
-                    Tap to Explore
+                    点击查看
                 </span>
             </div>
         </motion.div>
@@ -82,7 +82,7 @@ function DesktopMemoryCard({ memory }: FloatingMemoryCardProps) {
                     className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300 flex items-center gap-1"
                 >
                     <MapPin size={14} className="text-rose-500" />
-                    {memory.locationName || "Somewhere on Earth"}
+                    {memory.locationName || "未知地点"}
                 </CardItem>
 
                 <CardItem translateZ="100" className="w-full mt-6">
@@ -114,7 +114,7 @@ function DesktopMemoryCard({ memory }: FloatingMemoryCardProps) {
                         as="div"
                         className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold shadow-md"
                     >
-                        Hover to Explore
+                        悬停查看
                     </CardItem>
                 </div>
 
