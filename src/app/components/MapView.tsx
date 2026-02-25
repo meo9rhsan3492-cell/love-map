@@ -332,7 +332,7 @@ export function MapView({
                 {memory.media?.some(m => m.type === 'video') && (
                   <div className="mt-1 inline-flex items-center gap-1 bg-pink-100 px-2 py-0.5 rounded-full text-[10px] text-pink-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3" /></svg>
-                    Video Memory
+                    视频回忆
                   </div>
                 )}
               </div>

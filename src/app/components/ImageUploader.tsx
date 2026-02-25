@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, X, Film, Image as ImageIcon, Plus } from 'lucide-react';
+import { X, Film, Plus } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 import ExifReader from 'exifreader';
@@ -219,7 +219,7 @@ export function ImageUploader({ value = [], onChange, maxSizeMB = 50, maxFiles =
                         >
                             {item.type === 'video' ? (
                                 <>
-                                    <img src={item.thumbnailUrl} alt="Video thumb" className="w-full h-full object-cover opacity-80" />
+                                    <img src={item.thumbnailUrl} alt="视频缩略图" className="w-full h-full object-cover opacity-80" />
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
                                             <Film className="w-5 h-5 text-white" />
@@ -227,7 +227,7 @@ export function ImageUploader({ value = [], onChange, maxSizeMB = 50, maxFiles =
                                     </div>
                                 </>
                             ) : (
-                                <img src={item.url} alt="Uploaded" className="w-full h-full object-cover" />
+                                <img src={item.url} alt="已上传" className="w-full h-full object-cover" />
                             )}
 
                             <button

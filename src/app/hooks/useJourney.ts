@@ -66,13 +66,13 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         const count = journeyIndex + 1;
 
         if (count === 1) {
-            milestoneData = { title: "First Step", subtitle: "开启这段旅程", type: "city" };
+            milestoneData = { title: "第一步", subtitle: "开启这段旅程", type: "city" };
         } else if (count === 5) {
-            milestoneData = { title: "Explorer", subtitle: "探索了5个地点", type: "streak" };
+            milestoneData = { title: "探索家", subtitle: "探索了5个地点", type: "streak" };
         } else if (count === 10) {
-            milestoneData = { title: "Memory Collector", subtitle: "收集了10个美好瞬间", type: "count" };
+            milestoneData = { title: "回忆收集者", subtitle: "收集了10个美好瞬间", type: "count" };
         } else if (count === 20) {
-            milestoneData = { title: "Time Traveler", subtitle: "穿越了时空的旅人", type: "anniversary" };
+            milestoneData = { title: "时光旅人", subtitle: "穿越了时空的旅人", type: "anniversary" };
         }
 
         if (milestoneData) {

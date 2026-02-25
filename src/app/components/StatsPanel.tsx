@@ -7,7 +7,7 @@ interface StatsPanelProps {
     memories: Memory[];
 }
 
-const StatCard = ({ icon: Icon, label, value, subValue, color, delay, onClick, size = "small" }: any) => {
+const StatCard = ({ icon: Icon, label, value, subValue, color, onClick, size = "small" }: any) => {
     // Soft Romantic Style - Pastel & Cute
     const colorClasses =
         color === 'pink' ? 'bg-gradient-to-br from-[#ffd1ff] to-[#fad0c4] text-[#d63384]' :
@@ -24,7 +24,7 @@ const StatCard = ({ icon: Icon, label, value, subValue, color, delay, onClick, s
             whileTap={{ scale: 0.95 }} // Satisfying click press
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={`rounded-3xl p-5 relative flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-xl transition-shadow ${size === "large" ? "col-span-1 md:col-span-2 row-span-1 aspect-square md:aspect-auto" :
-                    "col-span-1 aspect-square"
+                "col-span-1 aspect-square"
                 } ${colorClasses}`}
             onClick={onClick}
         >
@@ -32,7 +32,7 @@ const StatCard = ({ icon: Icon, label, value, subValue, color, delay, onClick, s
                 <div className="p-2 bg-white/40 backdrop-blur-sm rounded-full">
                     <Icon className={`w-5 h-5`} fill="currentColor" strokeWidth={0} />
                 </div>
-                {isLarge && <span className="text-[10px] font-bold bg-white/40 px-2 py-1 rounded-full text-black/50">HIGHLIGHT</span>}
+                {isLarge && <span className="text-[10px] font-bold bg-white/40 px-2 py-1 rounded-full text-black/50">亮点</span>}
             </div>
 
             <div className="mt-auto">
@@ -77,7 +77,7 @@ export function StatsPanel({ memories }: StatsPanelProps) {
             totalCount,
             topCategory: topCategory?.[0] || null,
             topCategoryCount: topCategory?.[1] || 0,
-            provinceCount: new Set(memories.map(m => m.location)).size // Simple mock
+            provinceCount: new Set(memories.map(m => m.locationName).filter(Boolean)).size
         };
     }, [memories]);
 
