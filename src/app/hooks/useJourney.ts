@@ -19,6 +19,8 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
     const [showTrivia, setShowTrivia] = useState(false);
     const [showShutter, setShowShutter] = useState(false);
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const { playSuccess, playPop } = useSound();
 
     const handleStartJourney = () => {
@@ -93,13 +95,11 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         const currentMemory = memories[journeyIndex];
         if (!currentMemory) return;
 
-        // Flight time is roughly 6s (set in MapView)
-        // We arrive at t=6s.
-        // Stamp appears at t=6s.
-        const flightDuration = 6000;
+        // Flight time: 6s desktop, 3s mobile
+        const flightDuration = isMobile ? 3000 : 6000;
 
-        // Trivia: Show during flight
-        setShowTrivia(true);
+        // Trivia: Show during flight (skip on mobile to reduce overlays)
+        if (!isMobile) setShowTrivia(true);
         const hideTriviaTimeout = setTimeout(() => {
             setShowTrivia(false);
         }, flightDuration - 1000); // Hide a bit later

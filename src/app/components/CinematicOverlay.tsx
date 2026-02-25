@@ -10,16 +10,16 @@ interface CinematicOverlayProps {
 
 export function CinematicOverlay({ type, onComplete, memoriesCount = 0 }: CinematicOverlayProps) {
     const [count, setCount] = useState(3);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     // Intro Countdown Logic
     useEffect(() => {
         if (type === 'intro') {
             setCount(3);
-            // Deterministic countdown sequence
             const t1 = setTimeout(() => setCount(2), 1000);
             const t2 = setTimeout(() => setCount(1), 2000);
-            const t3 = setTimeout(() => setCount(0), 3000); // 0 triggers "Actions!"
-            const t4 = setTimeout(onComplete, 4000); // Finished
+            const t3 = setTimeout(() => setCount(0), 3000);
+            const t4 = setTimeout(onComplete, 4000);
 
             return () => {
                 clearTimeout(t1);
@@ -28,11 +28,10 @@ export function CinematicOverlay({ type, onComplete, memoriesCount = 0 }: Cinema
                 clearTimeout(t4);
             };
         } else {
-            // Outro auto-close
             const timer = setTimeout(onComplete, 3000);
             return () => clearTimeout(timer);
         }
-    }, [type]); // Remove onComplete from deps to ensure stability
+    }, [type]);
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black text-white flex items-center justify-center overflow-hidden pointer-events-auto font-mono">
@@ -42,17 +41,21 @@ export function CinematicOverlay({ type, onComplete, memoriesCount = 0 }: Cinema
             {/* Vignette */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_90%)]" />
 
-            {/* Vertical Scratches (Old Film Effect) */}
-            <motion.div
-                className="absolute top-0 bottom-0 left-[20%] w-[1px] bg-white/20"
-                animate={{ x: [-10, 10, -5, 20, 0], opacity: [0, 0.5, 0] }}
-                transition={{ repeat: Infinity, duration: 0.2, ease: "linear" }}
-            />
-            <motion.div
-                className="absolute top-0 bottom-0 right-[30%] w-[2px] bg-white/10"
-                animate={{ x: [5, -20, 10, -5], opacity: [0, 0.3, 0] }}
-                transition={{ repeat: Infinity, duration: 0.3, ease: "linear", delay: 0.1 }}
-            />
+            {/* Vertical Scratches (Old Film Effect) - DESKTOP ONLY */}
+            {!isMobile && (
+                <>
+                    <motion.div
+                        className="absolute top-0 bottom-0 left-[20%] w-[1px] bg-white/20"
+                        animate={{ x: [-10, 10, -5, 20, 0], opacity: [0, 0.5, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.2, ease: "linear" }}
+                    />
+                    <motion.div
+                        className="absolute top-0 bottom-0 right-[30%] w-[2px] bg-white/10"
+                        animate={{ x: [5, -20, 10, -5], opacity: [0, 0.3, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.3, ease: "linear", delay: 0.1 }}
+                    />
+                </>
+            )}
 
             <div className="relative z-10 flex flex-col items-center pointer-events-none">
                 {type === 'intro' ? (

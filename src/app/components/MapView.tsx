@@ -46,12 +46,13 @@ function MapController({ onMapClick }: { onMapClick: (lat: number, lng: number) 
 // Component to handle auto-pilot flying
 function MapRealigner({ activeMemory }: { activeMemory?: Memory | null }) {
   const map = useMap();
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   useEffect(() => {
     if (activeMemory) {
       map.flyTo([activeMemory.latitude, activeMemory.longitude], 17, {
         animate: true,
-        duration: 4, // Even slower for more "epic" feel
-        easeLinearity: 0.2 // More curved trajectory
+        duration: isMobile ? 2 : 4,
+        easeLinearity: 0.2
       });
     }
   }, [activeMemory, map]);
@@ -62,6 +63,8 @@ function MapRealigner({ activeMemory }: { activeMemory?: Memory | null }) {
 const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused }: { memories: Memory[]; hoveredMemoryId?: string | null; isPaused?: boolean }) => {
   const map = useMap();
   const frameRef = useRef<number>(0);
+  const frameCountRef = useRef(0);
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Optimization: Use ref to track hover state without re-triggering the main effect (canvas recreation)
   const hoveredIdRef = useRef(hoveredMemoryId);
@@ -88,6 +91,14 @@ const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused }: { memories: M
 
     const draw = () => {
       if (!ctx) return;
+
+      // Frame throttling: mobile ~30fps, journey mode ~10fps
+      frameCountRef.current++;
+      const skipRate = isMobileDevice ? 2 : 1; // Mobile: every 2nd frame
+      if (frameCountRef.current % skipRate !== 0) {
+        frameRef.current = requestAnimationFrame(draw);
+        return;
+      }
 
       const bounds = map.getBounds().pad(0.5);
       const topLeft = map.latLngToLayerPoint(bounds.getNorthWest());
