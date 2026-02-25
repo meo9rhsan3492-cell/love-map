@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useJourney } from '@/app/hooks/useJourney';
+import { loadMemories, saveMemories, migrateFromLocalStorage } from '@/app/lib/storage';
 import { useSound } from '@/app/hooks/useSound';
 import { Map as MapIcon, Settings, X, Plus, Calendar as CalendarIcon, Sparkles, LayoutGrid, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,7 +33,7 @@ import { MilestoneBadge } from '@/app/components/MilestoneBadge';
 import { ArrivalBurst } from '@/app/components/ArrivalBurst';
 import { JourneyProgressHUD } from '@/app/components/JourneyProgressHUD';
 
-const STORAGE_KEY = 'couple-memories';
+// Storage now uses IndexedDB via lib/storage.ts
 
 export default function App() {
   const [memories, setMemories] = useState<Memory[]>([]);
@@ -49,21 +50,27 @@ export default function App() {
 
   const { playPop, playSuccess } = useSound();
 
-  // Save to localStorage
+  // Load from IndexedDB on mount (with automatic localStorage migration)
+  const [storageReady, setStorageReady] = useState(false);
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    (async () => {
       try {
-        setMemories(JSON.parse(saved));
+        await migrateFromLocalStorage();
+        const saved = await loadMemories();
+        setMemories(saved);
       } catch (e) {
-        console.error('Failed to parse memories', e);
+        console.error('Failed to load memories from IndexedDB', e);
+      } finally {
+        setStorageReady(true);
       }
-    }
+    })();
   }, []);
 
+  // Persist to IndexedDB whenever memories change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
-  }, [memories]);
+    if (!storageReady) return;
+    saveMemories(memories).catch(e => console.error('Failed to save:', e));
+  }, [memories, storageReady]);
 
   const filteredMemories = memories;
 
