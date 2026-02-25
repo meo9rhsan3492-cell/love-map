@@ -344,11 +344,9 @@ export default function App() {
             </Button>
           </div>
 
-          {/* BOTTOM FLOATING DOCK */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 md:gap-8">
-
-            {/* Nav Bar Pill */}
-            <div className="bg-white/90 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center gap-1 md:gap-2 scale-90 md:scale-100 origin-bottom">
+          {/* BOTTOM NAV BAR - Centered */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
+            <div className="bg-white/90 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center gap-1 md:gap-2">
               <NavButton
                 active={(isMobile ? mobileView : desktopView) === 'map'}
                 onClick={() => { setMobileView('map'); setDesktopView('map'); }}
@@ -374,8 +372,11 @@ export default function App() {
                 label="未来"
               />
             </div>
+          </div>
 
-            {/* LOCATION PICKER TOGGLE */}
+          {/* RIGHT SIDE ACTION BUTTONS - Stacked vertically, above nav bar */}
+          <div className="absolute bottom-24 md:bottom-10 right-4 md:right-8 z-40 flex flex-col items-center gap-3">
+            {/* Pin Toggle */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -389,19 +390,19 @@ export default function App() {
                   toast.info('退出定位模式');
                 }
               }}
-              className={`w-12 h-12 md:w-14 md:h-14 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex items-center justify-center border-2 transition-all duration-300 ${isPinning ? 'bg-rose-500 border-white text-white rotate-12 scale-110 ring-4 ring-rose-200' : 'bg-white border-white/50 text-gray-500 hover:bg-gray-50'}`}
+              className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-lg flex items-center justify-center border-2 transition-all duration-300 ${isPinning ? 'bg-rose-500 border-white text-white rotate-12 scale-110 ring-4 ring-rose-200' : 'bg-white border-white/50 text-gray-500 hover:bg-gray-50'}`}
             >
-              <MapPin className="w-6 h-6" strokeWidth={2.5} />
+              <MapPin className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
             </motion.button>
 
-            {/* BIG FAB (Quick Add) */}
+            {/* FAB (Quick Add) */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => { playPop(); setDesktopAddOpen(true); }}
-              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-4 border-white/20"
+              className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-4 border-white/20"
             >
-              <Plus className="w-8 h-8 md:w-10 md:h-10" strokeWidth={3} />
+              <Plus className="w-7 h-7 md:w-10 md:h-10" strokeWidth={3} />
             </motion.button>
           </div>
         </motion.div>

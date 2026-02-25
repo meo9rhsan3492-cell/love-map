@@ -345,21 +345,21 @@ export function MapView({
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/80 to-transparent pointer-events-none z-[400]" />
       <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-[400]" />
 
-      {/* Journey Control FAB -- Moved up to avoid MusicPlayer overlap */}
-      <div className="absolute bottom-24 right-8 z-[500] flex flex-col gap-2">
+      {/* Journey Control FAB -- Left side on mobile, right side on desktop */}
+      <div className="absolute bottom-24 left-4 md:left-auto md:right-8 z-[500] flex flex-col gap-2">
         {isPlaying ? (
           <Button
-            className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 shadow-xl border-4 border-white/20 animate-pulse"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-500 hover:bg-red-600 shadow-xl border-4 border-white/20 animate-pulse"
             onClick={onStopJourney}
           >
-            <StopCircle className="w-6 h-6 text-white" fill="white" />
+            <StopCircle className="w-5 h-5 md:w-6 md:h-6 text-white" fill="white" />
           </Button>
         ) : (
           <Button
-            className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-xl border-4 border-white/20"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-xl border-4 border-white/20"
             onClick={onStartJourney}
           >
-            <Play className="w-6 h-6 text-white ml-1" fill="white" />
+            <Play className="w-5 h-5 md:w-6 md:h-6 text-white ml-0.5" fill="white" />
           </Button>
         )}
       </div>
