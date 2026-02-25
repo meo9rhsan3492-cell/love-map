@@ -49,7 +49,7 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
         media: editingMemory.media || (editingMemory.imageUrl ? [{
           type: 'image',
           url: editingMemory.imageUrl,
-          mimeType: 'image/jpeg', // Assumption for legacy
+          mimeType: 'image/jpeg',
         }] : []),
       });
     } else if (initialPosition) {
@@ -77,7 +77,10 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim()) {
+      toast.error('请输入标题');
+      return;
+    }
 
     if (editingMemory) {
       onUpdate?.(editingMemory.id, formData);
@@ -115,7 +118,7 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
 
   const handleGeocode = () => {
     if (!formData.locationName) return;
-    toast.loading("Searching...");
+    toast.loading("搜索中...");
     fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(formData.locationName)}&format=json&limit=1`, {
       headers: { 'User-Agent': 'LoveJournal/1.0' }
     })
@@ -129,9 +132,9 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
             latitude: parseFloat(lat),
             longitude: parseFloat(lon)
           }));
-          toast.success("Found it! Map updated. 📍");
+          toast.success("已找到位置，地图已更新 📍");
         } else {
-          toast.error("Location not found.");
+          toast.error("未找到该地点，请尝试更详细的名称");
         }
       })
       .catch(() => toast.dismiss());
@@ -139,20 +142,20 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-3xl border-4 border-pink-100/50 shadow-2xl bg-white/95 backdrop-blur-md">
+      <DialogContent className="sm:max-w-[500px] rounded-3xl border-4 border-pink-100/50 shadow-2xl bg-white/95 backdrop-blur-md max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-cute font-bold text-gray-800">
             <div className="p-2 bg-pink-100 rounded-full">
               <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
             </div>
-            {editingMemory ? 'Edit Memory' : 'New Memory'}
+            {editingMemory ? '编辑回忆' : '记录新回忆'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type" className="text-xs font-bold uppercase tracking-wider text-gray-400">Type</Label>
+        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="type" className="text-xs font-bold uppercase tracking-wider text-gray-400">类型</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value: MemoryType) => setFormData({ ...formData, type: value })}
@@ -161,14 +164,14 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-pink-100">
-                  <SelectItem value="memory">💖 Memory</SelectItem>
-                  <SelectItem value="expectation">✨ Expectation</SelectItem>
+                  <SelectItem value="memory">💖 回忆</SelectItem>
+                  <SelectItem value="expectation">✨ 心愿</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-xs font-bold uppercase tracking-wider text-gray-400">Category</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="category" className="text-xs font-bold uppercase tracking-wider text-gray-400">分类</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value: MemoryCategory) => setFormData({ ...formData, category: value })}
@@ -187,29 +190,29 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-gray-400">Title</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-gray-400">标题</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Give it a cute name..."
+              placeholder="给这段回忆起个名字..."
               className="rounded-2xl border-pink-100 bg-pink-50/30 focus:ring-pink-200"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-wider text-gray-400">Story</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-wider text-gray-400">故事</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="What happened? Tell me everything..."
-              className="rounded-2xl border-pink-100 bg-pink-50/30 focus:ring-pink-200 min-h-[100px]"
+              placeholder="发生了什么？记录下所有细节..."
+              className="rounded-2xl border-pink-100 bg-pink-50/30 focus:ring-pink-200 min-h-[80px]"
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="date">日期</Label>
             <Input
               id="date"
@@ -219,17 +222,17 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="locationName">地点名称 (Location)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="locationName">地点名称</Label>
             <div className="flex gap-2">
               <Input
                 id="locationName"
                 value={formData.locationName || ''}
                 onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
-                placeholder="e.g. Disney Castle, Shanghai"
+                placeholder="例如：迪士尼城堡、外滩"
                 className="rounded-2xl border-pink-100 bg-pink-50/30 focus:ring-pink-200"
               />
-              <Button type="button" variant="outline" size="icon" onClick={handleGeocode} title="Locate on Map" className="rounded-xl border-pink-200 hover:bg-pink-50">
+              <Button type="button" variant="outline" size="icon" onClick={handleGeocode} title="在地图上定位" className="rounded-xl border-pink-200 hover:bg-pink-50">
                 <MapPin className="w-4 h-4 text-rose-500" />
               </Button>
             </div>
@@ -245,7 +248,7 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
               ) : (
                 <span className="flex items-center gap-1 text-amber-500">
                   <MapIcon className="w-3 h-3" />
-                  未设置坐标 (将使用默认位置)
+                  未设置坐标（将使用默认位置）
                 </span>
               )}
             </div>
@@ -254,19 +257,18 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">
-              Media (Photos & Videos)
+              照片和视频
             </Label>
 
-            <div className="bg-pink-50/30 rounded-2xl p-4 border border-pink-100/50">
+            <div className="bg-pink-50/30 rounded-2xl p-3 border border-pink-100/50">
               <ImageUploader
                 value={formData.media}
                 onChange={(newMedia) => {
                   setFormData(prev => ({
                     ...prev,
                     media: newMedia,
-                    // Backward compatibility: Set imageUrl to first media if image or thumbnail
                     imageUrl: newMedia[0]?.url || ''
                   }));
                 }}
@@ -286,12 +288,12 @@ export function MemoryForm({ isOpen, onClose, onSave, onUpdate, initialPosition,
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+          <DialogFooter className="pt-2 pb-1">
+            <Button type="button" variant="outline" onClick={handleClose} className="rounded-xl">
               取消
             </Button>
-            <Button type="submit" className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
-              保存
+            <Button type="submit" className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-xl">
+              {editingMemory ? '保存修改' : '保存回忆 💖'}
             </Button>
           </DialogFooter>
         </form>

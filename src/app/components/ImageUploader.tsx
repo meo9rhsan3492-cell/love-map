@@ -263,7 +263,7 @@ export function ImageUploader({ value = [], onChange, maxSizeMB = 50, maxFiles =
                             ) : (
                                 <>
                                     <Plus className="w-6 h-6" />
-                                    <span className="text-xs font-medium">Add</span>
+                                    <span className="text-xs font-medium">添加</span>
                                 </>
                             )}
                         </motion.button>
@@ -283,7 +283,7 @@ export function ImageUploader({ value = [], onChange, maxSizeMB = 50, maxFiles =
             {error && <p className="text-xs text-red-500 text-center">{error}</p>}
 
             <p className="text-[10px] text-gray-400 text-center">
-                支持 Image & Video • 最多 {maxFiles} 个文件 • 智能定位 📍
+                支持图片和视频 • 最多 {maxFiles} 个文件 • 智能定位 📍
             </p>
         </div>
     );
