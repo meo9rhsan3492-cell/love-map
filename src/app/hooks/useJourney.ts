@@ -18,6 +18,8 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
     const [showStamp, setShowStamp] = useState(false);
     const [showTrivia, setShowTrivia] = useState(false);
     const [showShutter, setShowShutter] = useState(false);
+    const [showBurst, setShowBurst] = useState(false);
+    const [isFlying, setIsFlying] = useState(false);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -34,6 +36,7 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
     const handleStopJourney = () => {
         setJourneyState('idle');
         setJourneyIndex(0);
+        setIsFlying(false);
         onMemorySelect(null);
         toast.info('巡航结束 ✨');
     };
@@ -42,11 +45,13 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         playSuccess();
         setJourneyState('playing');
         setJourneyIndex(0);
+        setIsFlying(true);
     };
 
     const handleOutroComplete = () => {
         setJourneyState('idle');
         setJourneyIndex(0);
+        setIsFlying(false);
         onMemorySelect(null);
     };
 
@@ -89,11 +94,16 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
 
         if (journeyIndex >= memories.length) {
             setJourneyState('outro');
+            setIsFlying(false);
             return;
         }
 
         const currentMemory = memories[journeyIndex];
         if (!currentMemory) return;
+
+        // Start flying phase
+        setIsFlying(true);
+        setShowBurst(false);
 
         // Flight time: 6s desktop, 3s mobile
         const flightDuration = isMobile ? 3000 : 6000;
@@ -102,32 +112,41 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         if (!isMobile) setShowTrivia(true);
         const hideTriviaTimeout = setTimeout(() => {
             setShowTrivia(false);
-        }, flightDuration - 1000); // Hide a bit later
+        }, flightDuration - 1000);
 
-        // Shutter: Close before landing to hide the "snap", open when content is ready
-        // Shutter duration is 0.3s (300ms)
+        // Shutter: Close before landing
         const shutterStart = setTimeout(() => {
             setShowShutter(true);
-        }, flightDuration - 400); // Start closing just before arrival
+        }, flightDuration - 400);
 
         const shutterEnd = setTimeout(() => {
             setShowShutter(false);
-        }, flightDuration + 100); // Open immediately after content swap
+        }, flightDuration + 100);
+
+        // Arrival burst when landed
+        const burstTimeout = setTimeout(() => {
+            setShowBurst(true);
+            setIsFlying(false);
+        }, flightDuration);
+
+        const hideBurstTimeout = setTimeout(() => {
+            setShowBurst(false);
+        }, flightDuration + 800);
 
         // Show stamp when landed
         const stampTimeout = setTimeout(() => {
             setShowStamp(true);
             playPop();
-        }, flightDuration + 300); // Slight delay after shutter opens
+        }, flightDuration + 300);
 
         const hideStampTimeout = setTimeout(() => {
             setShowStamp(false);
         }, flightDuration + 4000);
 
-        // Calculate reading time - slightly longer for better chill vibe
-        const textTime = (currentMemory.description?.length || 0) * 200; // Slower reading speed assumption
+        // Calculate reading time
+        const textTime = (currentMemory.description?.length || 0) * 200;
         const mediaTime = (currentMemory.media?.length || 1) * 4000;
-        const viewDuration = Math.min(Math.max(6000, textTime + mediaTime), 25000); // At least 6s
+        const viewDuration = Math.min(Math.max(6000, textTime + mediaTime), 25000);
 
         setCurrentDuration(flightDuration + viewDuration);
 
@@ -136,13 +155,12 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
             onMemorySelect(currentMemory);
         }, flightDuration);
 
-        // Disappear content a bit before flying (Linger Phase)
-        // e.g., 1.5s before flying to next
+        // Close card before flying
         const closeCardTimeout = setTimeout(() => {
             onMemorySelect(null);
         }, flightDuration + viewDuration - 1500);
 
-        // Next step - Fly to next location
+        // Next step
         const nextStepTimeout = setTimeout(() => {
             setJourneyIndex(prev => prev + 1);
         }, flightDuration + viewDuration);
@@ -156,6 +174,8 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
             clearTimeout(hideTriviaTimeout);
             clearTimeout(shutterStart);
             clearTimeout(shutterEnd);
+            clearTimeout(burstTimeout);
+            clearTimeout(hideBurstTimeout);
         };
     }, [journeyState, journeyIndex, memories, onMemorySelect, playPop]);
 
@@ -167,6 +187,8 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         showStamp,
         showTrivia,
         showShutter,
+        showBurst,
+        isFlying,
         handleStartJourney,
         handleStopJourney,
         handleIntroComplete,

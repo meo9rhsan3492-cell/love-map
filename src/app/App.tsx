@@ -29,6 +29,8 @@ import { TravelTrivia } from '@/app/components/TravelTrivia';
 import { CinematicShutter } from '@/app/components/CinematicShutter';
 import { FloatingMemoryCard } from '@/app/components/FloatingMemoryCard';
 import { MilestoneBadge } from '@/app/components/MilestoneBadge';
+import { ArrivalBurst } from '@/app/components/ArrivalBurst';
+import { JourneyProgressHUD } from '@/app/components/JourneyProgressHUD';
 
 const STORAGE_KEY = 'couple-memories';
 
@@ -132,6 +134,8 @@ export default function App() {
     currentDuration,
     showTrivia,
     showShutter,
+    showBurst,
+    isFlying,
     handleStartJourney,
     handleStopJourney,
     handleIntroComplete,
@@ -156,6 +160,7 @@ export default function App() {
       {/* Cinematic Overlays */}
       <CinematicShutter active={showShutter} />
       <TravelTrivia show={showTrivia} />
+      <ArrivalBurst active={showBurst} color={journeyIndex % 3 === 0 ? 'gold' : journeyIndex % 3 === 1 ? 'rose' : 'blue'} />
 
       <AnimatePresence>
         {journeyState === 'intro' && (
@@ -177,18 +182,54 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Journey Progress Bar */}
-      {journeyState === 'playing' && (
-        <div className="fixed top-0 left-0 right-0 h-1 z-[9999] pointer-events-none">
-          <motion.div
-            key={journeyIndex} // Reset animation on index change
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: currentDuration / 1000, ease: 'linear' }}
-            className="h-full bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]"
-          />
-        </div>
-      )}
+      {/* Letterbox Cinematic Bars + Progress */}
+      <AnimatePresence>
+        {journeyState === 'playing' && (
+          <>
+            {/* Top letterbox bar */}
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 40 }}
+              exit={{ height: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed top-0 left-0 right-0 z-[998] pointer-events-none bg-black/80 flex items-center px-4"
+            >
+              <span className="text-white/40 text-[10px] tracking-[0.3em] uppercase font-mono">OUR LOVE JOURNAL</span>
+              <span className="ml-auto text-white/30 text-[10px] font-mono">{journeyIndex + 1} / {filteredMemories.length}</span>
+            </motion.div>
+
+            {/* Bottom letterbox bar with progress */}
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 40 }}
+              exit={{ height: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed bottom-0 left-0 right-0 z-[998] pointer-events-none bg-black/80 flex items-center"
+            >
+              {/* Embedded progress bar */}
+              <motion.div
+                key={journeyIndex}
+                initial={{ width: '0%' }}
+                animate={{ width: '100%' }}
+                transition={{ duration: currentDuration / 1000, ease: 'linear' }}
+                className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]"
+              />
+              <span className="text-white/30 text-[10px] font-mono px-4">
+                {filteredMemories[journeyIndex]?.locationName || '...'}
+              </span>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Journey Progress HUD */}
+      <JourneyProgressHUD
+        currentIndex={journeyIndex}
+        totalCount={filteredMemories.length}
+        locationName={filteredMemories[journeyIndex]?.locationName}
+        isFlying={isFlying}
+        show={journeyState === 'playing'}
+      />
 
       <AnimatePresence mode="sync">
         {showLanding && (
@@ -435,14 +476,29 @@ export default function App() {
         {selectedMemory && (
           journeyState === 'playing' ? (
             <motion.div
-              key="journey-card"
-              initial={{ opacity: 0, scale: 0.5, rotateY: 180 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-              exit={{ opacity: 0, scale: 0.5, rotateY: -180 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              key={`journey-card-${selectedMemory.id}`}
+              initial={{ opacity: 0, y: 100, scale: 0.7, rotate: -3 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, y: -80, scale: 0.8, rotate: 3, filter: 'blur(8px)' }}
+              transition={{ type: "spring", stiffness: 250, damping: 22, mass: 0.8 }}
               className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-none"
             >
-              <div className="pointer-events-auto">
+              {/* Backdrop blur overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              />
+              {/* Glow behind card */}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 0.5 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ delay: 0.1 }}
+                className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 blur-3xl"
+              />
+              <div className="pointer-events-auto relative z-10">
                 <FloatingMemoryCard memory={selectedMemory} />
               </div>
             </motion.div>
@@ -453,7 +509,6 @@ export default function App() {
               isOpen={!!selectedMemory}
               onClose={() => {
                 setSelectedMemory(null);
-                if (journeyState === 'playing') handleStopJourney();
               }}
               onEdit={handleEdit}
               onDelete={handleDeleteMemory}
