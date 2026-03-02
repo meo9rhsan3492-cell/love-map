@@ -128,7 +128,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                     className="mb-8 flex items-center gap-2 text-white font-mono tracking-[0.4em] text-sm uppercase drop-shadow-md bg-white/10 px-4 py-1 rounded-full backdrop-blur-sm"
                 >
                     <Star className="w-4 h-4 text-yellow-300 animate-spin-slow" />
-                    <span>Since 2024</span>
+                    <span>Since 2020</span>
                     <Star className="w-4 h-4 text-yellow-300 animate-spin-slow" />
                 </motion.div>
 
@@ -152,31 +152,29 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                         />
                     </div>
                     <motion.h1
-                        animate={{ y: [0, -15, 0] }} // Gentle floating
+                        animate={{ y: [0, -15, 0] }}
                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                         className="relative z-10 font-sans font-black italic text-7xl md:text-9xl leading-tight text-white tracking-tight"
                         style={{
-                            // "Bubble 3D" Retro Style
-                            // White Text + Deep Pink/Purple Extrusion
                             textShadow: `
-                        1px 1px 0px #eba4b9, /* Pink Edge */
+                        1px 1px 0px #eba4b9,
                         2px 2px 0px #ea9cb3,
                         3px 3px 0px #e994ad,
                         4px 4px 0px #e88ca7,
                         5px 5px 0px #e784a1,
-                        6px 6px 0px #e67c9b, /* Deepening Pink */
+                        6px 6px 0px #e67c9b,
                         7px 7px 0px #e57495,
-                        8px 8px 0px #d65d82, /* Transition to Purple/Darker */
+                        8px 8px 0px #d65d82,
                         9px 9px 0px #c7466f,
                         10px 10px 0px #b82f5c,
-                        11px 11px 0px #a91849, /* Deep Base */
-                        12px 12px 20px rgba(0,0,0,0.2), /* Soft Drop Shadow */
+                        11px 11px 0px #a91849,
+                        12px 12px 20px rgba(0,0,0,0.2),
                         12px 12px 40px rgba(0,0,0,0.15)
                     `
                         }}
                     >
-                        The Story <br />
-                        <span className="text-pink-100" style={{ textShadow: 'inherit' }}>of Us.</span>
+                        SQ <br />
+                        <span className="text-pink-100" style={{ textShadow: 'inherit' }}>♥ ZXY</span>
                     </motion.h1>
                 </motion.div>
 
@@ -187,8 +185,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                     transition={{ delay: 1.5, duration: 1 }}
                     className="text-lg md:text-2xl text-white font-cute mb-8 max-w-lg leading-relaxed drop-shadow-md"
                 >
-                    A collection of our beautiful moments, <br />
-                    frozen in time, forever in heart.
+                    记录我们走过的每一步，<br />
+                    把美好的瞬间，永远留在心里。
                 </motion.p>
 
                 {/* DAILY LOVE QUOTE */}
@@ -222,7 +220,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                         className="relative z-10 group px-12 py-9 rounded-full bg-white text-purple-600 hover:bg-purple-50 text-xl font-bold shadow-[0_0_50px_-10px_rgba(255,255,255,0.8)] hover:shadow-[0_0_80px_-10px_rgba(255,255,255,1)] transition-all duration-300 transform hover:scale-105 border-4 border-white/20"
                     >
                         <span className="flex items-center gap-3">
-                            Start Journey <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            开启旅程 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                         </span>
                     </Button>
                 </motion.div>
@@ -236,7 +234,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                 exit={{ opacity: 0 }}
                 className="absolute bottom-8 text-white/60 text-xs font-mono tracking-widest z-30 pointer-events-none drop-shadow-sm"
             >
-                CREATED WITH LOVE
+                CREATED WITH ♥ BY SQ
             </motion.div>
         </motion.div>
     );

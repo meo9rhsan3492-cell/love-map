@@ -12,7 +12,7 @@ export interface AppSettings {
 const STORAGE_KEY = 'couple-settings-v1';
 
 const DEFAULT_SETTINGS: AppSettings = {
-    startDate: '2024-01-01',
+    startDate: '2020-01-01',
     names: {
         partner1: 'You',
         partner2: 'Me',
