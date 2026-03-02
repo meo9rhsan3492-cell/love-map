@@ -32,6 +32,9 @@ import { FloatingMemoryCard } from '@/app/components/FloatingMemoryCard';
 import { MilestoneBadge } from '@/app/components/MilestoneBadge';
 import { ArrivalBurst } from '@/app/components/ArrivalBurst';
 import { JourneyProgressHUD } from '@/app/components/JourneyProgressHUD';
+import { AnniversaryAlert } from '@/app/components/AnniversaryAlert';
+import { DailyLoveNote } from '@/app/components/DailyLoveNote';
+import { SeasonalParticles } from '@/app/components/SeasonalParticles';
 
 // Storage now uses IndexedDB via lib/storage.ts
 
@@ -163,6 +166,9 @@ export default function App() {
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-900 text-editorial overflow-hidden font-sans selection:bg-rose-200 relative">
       <AtmosphericBackground />
+      <SeasonalParticles />
+      <AnniversaryAlert startDate={settings.startDate} />
+      <DailyLoveNote />
 
       {/* Cinematic Overlays */}
       <CinematicShutter active={showShutter} />
