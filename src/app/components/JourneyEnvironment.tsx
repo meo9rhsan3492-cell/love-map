@@ -114,7 +114,7 @@ export function JourneyEnvironment({ active, memoryDate }: JourneyEnvironmentPro
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 1.5, ease: 'easeInOut' }}
-                    className="fixed inset-0 pointer-events-none z-[6]"
+                    className="fixed inset-0 pointer-events-none z-[450]"
                     style={{ willChange: 'opacity' }}
                 >
                     {/* Season gradient overlay */}
