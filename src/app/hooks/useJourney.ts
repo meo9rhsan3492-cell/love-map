@@ -105,8 +105,8 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         setIsFlying(true);
         setShowBurst(false);
 
-        // Flight time: 6s desktop, 3s mobile
-        const flightDuration = isMobile ? 3000 : 6000;
+        // Flight time: 2s desktop, 1.5s mobile (matched to MapRealigner)
+        const flightDuration = isMobile ? 1500 : 2000;
 
         // Trivia: Show during flight (skip on mobile to reduce overlays)
         if (!isMobile) setShowTrivia(true);

@@ -47,20 +47,42 @@ function MapController({ onMapClick }: { onMapClick: (lat: number, lng: number) 
 function MapRealigner({ activeMemory }: { activeMemory?: Memory | null }) {
   const map = useMap();
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const prevRef = useRef<Memory | null>(null);
+
   useEffect(() => {
-    if (activeMemory) {
-      map.flyTo([activeMemory.latitude, activeMemory.longitude], 17, {
+    if (!activeMemory) return;
+
+    const targetLatLng = L.latLng(activeMemory.latitude, activeMemory.longitude);
+    const currentCenter = map.getCenter();
+    const distance = currentCenter.distanceTo(targetLatLng);
+
+    // If very close (<5km), just pan smoothly without zoom change
+    if (distance < 5000 && prevRef.current) {
+      map.panTo(targetLatLng, {
         animate: true,
-        duration: isMobile ? 2 : 4,
-        easeLinearity: 0.2
+        duration: isMobile ? 0.8 : 1.2,
+        easeLinearity: 0.5,
+        noMoveStart: true, // Don't invalidate tiles at start
+      });
+    } else {
+      // Fly with moderate zoom (12, not extreme 17)
+      // Shorter duration = less time showing grey tiles
+      map.flyTo(targetLatLng, 12, {
+        animate: true,
+        duration: isMobile ? 1 : 1.5,
+        easeLinearity: 0.35,
+        noMoveStart: true,
       });
     }
-  }, [activeMemory, map]);
+
+    prevRef.current = activeMemory;
+  }, [activeMemory, map, isMobile]);
+
   return null;
 }
 
 // RadiantAuraLayer (The "Light" Effect - No Darkness)
-const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused }: { memories: Memory[]; hoveredMemoryId?: string | null; isPaused?: boolean }) => {
+const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused, isJourneyPlaying }: { memories: Memory[]; hoveredMemoryId?: string | null; isPaused?: boolean; isJourneyPlaying?: boolean }) => {
   const map = useMap();
   const frameRef = useRef<number>(0);
   const frameCountRef = useRef(0);
@@ -75,8 +97,8 @@ const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused }: { memories: M
   }, [hoveredMemoryId]);
 
   useEffect(() => {
-    // If paused (e.g., landing page visible), do nothing and don't create canvas
-    if (isPaused) return;
+    // If paused or journey playing, do nothing and don't create canvas
+    if (isPaused || isJourneyPlaying) return;
 
     const canvas = L.DomUtil.create('canvas', 'leaflet-aura-layer');
     canvas.style.pointerEvents = 'none';
@@ -287,13 +309,15 @@ export function MapView({
           opacity={1}
           maxNativeZoom={18}
           maxZoom={20}
-          keepBuffer={20}
+          keepBuffer={30}
           updateWhenZooming={false}
           updateWhenIdle={false}
           crossOrigin="anonymous"
+          // @ts-ignore - Leaflet option for tile fade duration
+          tileFadeInDuration={150}
         />
 
-        <RadiantAuraLayer memories={memories} hoveredMemoryId={hoveredMemoryId} />
+        <RadiantAuraLayer memories={memories} hoveredMemoryId={hoveredMemoryId} isJourneyPlaying={isPlaying} />
         <MapRealigner activeMemory={activeMemory} />
 
         {/* Journey Route Polyline - Only Visible When Playing */}
