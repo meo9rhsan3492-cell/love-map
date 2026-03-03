@@ -262,7 +262,7 @@ export default function App() {
         className="relative w-full h-full"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={!showLanding ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
-        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+        transition={{ type: "spring", stiffness: 120, damping: 18, mass: 1, delay: 0.5 }}
       >
         <Toaster position="top-center" />
         <HeartRain isActive={showCelebration} onComplete={() => setShowCelebration(false)} />
@@ -320,11 +320,12 @@ export default function App() {
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 200, damping: 24, mass: 0.8 }}
               className="absolute inset-4 bottom-32 md:inset-x-20 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-white/50"
             >
               <div className="h-full overflow-y-auto p-6 md:p-12 custom-scrollbar">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="font-cute text-3xl text-gray-800">Has it really been this long?</h2>
+                  <h2 className="font-cute text-3xl text-gray-800">时光线</h2>
                   <Button variant="ghost" size="icon" onClick={() => { setMobileView('map'); setDesktopView('map'); }} className="rounded-full hover:bg-gray-100">
                     <X className="w-6 h-6" />
                   </Button>
@@ -342,6 +343,7 @@ export default function App() {
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 200, damping: 24, mass: 0.8 }}
               className="absolute inset-4 bottom-32 md:inset-x-auto md:w-[600px] md:left-1/2 md:-translate-x-1/2 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-purple-100"
             >
               <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-gradient-to-b from-purple-50/50 to-white/50">
@@ -381,7 +383,7 @@ export default function App() {
           <div className="absolute top-6 left-6 z-30 pointer-events-none">
             <h1 className="font-black italic text-3xl md:text-5xl text-white tracking-tighter drop-shadow-lg"
               style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-              Our <span className="text-pink-500">Love</span> Journal
+              SQ <span className="text-pink-500">♥</span> ZXY
             </h1>
             <LoveTimer startDate={settings.startDate} className="text-white/80 mt-2 text-sm font-bold glass-tag inline-block px-3 py-1 rounded-full backdrop-blur-md bg-black/20" />
           </div>
@@ -432,8 +434,9 @@ export default function App() {
           <div className="absolute bottom-24 md:bottom-10 right-4 md:right-8 z-40 flex flex-col items-center gap-3">
             {/* Pin Toggle */}
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
               onClick={() => {
                 playPop();
                 const nextState = !isPinning;
@@ -451,8 +454,9 @@ export default function App() {
 
             {/* FAB (Quick Add) */}
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.15, rotate: 5 }}
+              whileTap={{ scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
               onClick={() => { playPop(); setDesktopAddOpen(true); }}
               className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-4 border-white/20"
             >
@@ -469,8 +473,8 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-black/40 backdrop-blur-md text-white px-6 py-4 rounded-full border border-white/20 text-center animate-pulse"
             >
-              <p className="font-bold text-lg">Click the Pin button to start 📍</p>
-              <p className="text-sm opacity-80">Light up our first city 🌍</p>
+              <p className="font-bold text-lg">点击图钉按钮开始记录 📍</p>
+              <p className="text-sm opacity-80">点亮我们的第一座城市 🌍</p>
             </motion.div>
           </div>
         )}
@@ -538,16 +542,19 @@ export default function App() {
 function NavButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
   const { playPop } = useSound();
   return (
-    <button
+    <motion.button
       onClick={() => { playPop(); onClick(); }}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ type: "spring", stiffness: 500, damping: 18 }}
       className={`
-                relative px-4 py-3 rounded-full flex items-center gap-2 transition-all duration-300
+                relative px-4 py-3 rounded-full flex items-center gap-2 transition-colors duration-300
                 ${active ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-100'}
             `}
     >
       {icon}
       <span className={`text-sm font-bold ${!active && 'hidden md:inline'}`}>{label}</span>
-      {active && <motion.div layoutId="nav-bg" className="absolute inset-0 bg-black rounded-full -z-10" />}
-    </button>
+      {active && <motion.div layoutId="nav-bg" className="absolute inset-0 bg-black rounded-full -z-10" transition={{ type: "spring", stiffness: 350, damping: 30 }} />}
+    </motion.button>
   );
 }
