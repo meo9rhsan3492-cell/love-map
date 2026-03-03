@@ -381,10 +381,10 @@ export default function App() {
 
           {/* Top Left: Brand / Title */}
           <div className="absolute top-6 left-6 z-30 pointer-events-none">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl px-5 py-3 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)]">
+            <div className="bg-black/40 backdrop-blur-xl rounded-2xl px-5 py-3 border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
               <h1 className="font-black italic text-3xl md:text-5xl text-white tracking-tighter drop-shadow-lg"
                 style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-                SQ <span className="text-pink-500">♥</span> ZXY
+                SQ <span className="text-pink-400">♥</span> ZXY
               </h1>
               <LoveTimer startDate={settings.startDate} className="text-white/80 mt-2 text-sm font-bold" />
             </div>
@@ -396,7 +396,7 @@ export default function App() {
               variant="ghost"
               size="icon"
               onClick={() => { playPop(); setIsSettingsOpen(true); }}
-              className="rounded-full bg-white/10 text-white hover:bg-white/20 backdrop-blur-xl w-10 h-10 md:w-12 md:h-12 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300"
+              className="rounded-full bg-black/30 text-white hover:bg-black/50 backdrop-blur-xl w-10 h-10 md:w-12 md:h-12 border border-white/15 shadow-[0_4px_16px_rgba(0,0,0,0.15)] transition-all duration-300"
             >
               <Settings className="w-5 h-5 md:w-6 md:h-6" />
             </Button>
@@ -404,7 +404,7 @@ export default function App() {
 
           {/* BOTTOM NAV BAR - Centered */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
-            <div className="bg-white/20 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.4)] border border-white/30 flex items-center gap-1 md:gap-2">
+            <div className="bg-black/35 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/15 flex items-center gap-1 md:gap-2">
               <NavButton
                 active={(isMobile ? mobileView : desktopView) === 'map'}
                 onClick={() => { setMobileView('map'); setDesktopView('map'); }}
@@ -433,7 +433,7 @@ export default function App() {
           </div>
 
           {/* RIGHT SIDE ACTION BUTTONS - Stacked vertically, above nav bar */}
-          <div className="absolute bottom-24 md:bottom-10 right-4 md:right-8 z-40 flex flex-col items-center gap-3">
+          <div className="absolute bottom-28 md:bottom-24 right-4 md:right-8 z-40 flex flex-col items-center gap-4">
             {/* Pin Toggle */}
             <motion.button
               whileHover={{ scale: 1.15 }}
@@ -449,7 +449,7 @@ export default function App() {
                   toast.info('退出定位模式');
                 }
               }}
-              className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex items-center justify-center border transition-all duration-300 ${isPinning ? 'bg-rose-500/80 backdrop-blur-xl border-white/30 text-white rotate-12 scale-110 ring-4 ring-rose-200/50' : 'bg-white/20 backdrop-blur-xl border-white/30 text-white hover:bg-white/30'}`}
+              className={`w-12 h-12 md:w-14 md:h-14 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.2)] flex items-center justify-center border transition-all duration-300 ${isPinning ? 'bg-rose-500/90 backdrop-blur-xl border-white/20 text-white rotate-12 scale-110 ring-4 ring-rose-300/40' : 'bg-black/35 backdrop-blur-xl border-white/15 text-white hover:bg-black/50'}`}
             >
               <MapPin className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
             </motion.button>
@@ -460,7 +460,7 @@ export default function App() {
               whileTap={{ scale: 0.85 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
               onClick={() => { playPop(); setDesktopAddOpen(true); }}
-              className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500/80 to-rose-400/80 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center justify-center text-white border border-white/30"
+              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-pink-500 to-rose-400 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-2 border-white/25"
             >
               <Plus className="w-7 h-7 md:w-10 md:h-10" strokeWidth={3} />
             </motion.button>
