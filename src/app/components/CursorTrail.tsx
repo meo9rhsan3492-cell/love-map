@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 
 interface Point {
@@ -15,48 +14,46 @@ export function CursorTrail() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const points = useRef<Point[]>([]);
     const mouse = useRef({ x: 0, y: 0 });
-    const isActive = useRef(false);
+    const rafId = useRef(0);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         if (!ctx) return;
 
+        let dpr = window.devicePixelRatio || 1;
+
         const resize = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+            ctx.scale(dpr, dpr);
         };
         resize();
-        window.addEventListener('resize', resize);
+        window.addEventListener('resize', resize, { passive: true });
 
-        const colors = ['#f472b6', '#fbbf24', '#c084fc', '#fbcfe8']; // Pink, Gold, Purple, Light Pink
-
-        const addPoint = (x: number, y: number) => {
-            points.current.push({
-                x,
-                y,
-                vx: (Math.random() - 0.5) * 2,
-                vy: (Math.random() - 0.5) * 2 + 1, // Slight gravity/fall
-                life: 1.0,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                size: Math.random() * 4 + 2
-            });
-        };
+        const colors = ['#f472b6', '#fbbf24', '#c084fc', '#fbcfe8'];
 
         let lastAdd = 0;
-
         const handleMouseMove = (e: MouseEvent) => {
             mouse.current = { x: e.clientX, y: e.clientY };
-            isActive.current = true;
-
-            // Throttle adding points to every 20ms to reduce CPU load
-            const now = Date.now();
-            if (now - lastAdd > 20) {
-                // Add multiple points for denser trail but less frequently
-                for (let i = 0; i < 2; i++) {
-                    addPoint(e.clientX, e.clientY);
+            // Throttle to every 30ms (was 20ms with 2 particles)
+            const now = performance.now();
+            if (now - lastAdd > 30) {
+                if (points.current.length < 40) { // Cap max particles
+                    points.current.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        vx: (Math.random() - 0.5) * 1.5,
+                        vy: (Math.random() - 0.5) * 1.5 + 0.8,
+                        life: 1.0,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: Math.random() * 3 + 2
+                    });
                 }
                 lastAdd = now;
             }
@@ -65,46 +62,40 @@ export function CursorTrail() {
         window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
         const animate = () => {
-            if (!ctx || !canvas) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
-            // Update and draw points
-            for (let i = 0; i < points.current.length; i++) {
-                const p = points.current[i];
+            const pts = points.current;
+            let writeIdx = 0;
 
+            for (let i = 0; i < pts.length; i++) {
+                const p = pts[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= 0.02; // Fade out speed
-                p.size *= 0.95; // Shrink speed
+                p.life -= 0.025;
+                p.size *= 0.96;
 
-                if (p.life <= 0 || p.size < 0.5) {
-                    points.current.splice(i, 1);
-                    i--;
-                    continue;
-                }
+                if (p.life <= 0 || p.size < 0.3) continue;
 
-                ctx.globalAlpha = p.life;
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
-
-                // Draw Heart
-                const s = p.size * 1.5;
+                // Simple circle instead of complex bezier heart (faster)
                 ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.bezierCurveTo(p.x - s / 2, p.y - s / 2, p.x - s, p.y + s / 3, p.x, p.y + s);
-                ctx.bezierCurveTo(p.x + s, p.y + s / 3, p.x + s / 2, p.y - s / 2, p.x, p.y);
+                ctx.arc(p.x, p.y, p.size, 0, 6.28);
                 ctx.fill();
-            }
 
-            requestAnimationFrame(animate);
+                pts[writeIdx++] = p;
+            }
+            pts.length = writeIdx; // Efficient splice-free cleanup
+
+            rafId.current = requestAnimationFrame(animate);
         };
 
-        const animationId = requestAnimationFrame(animate);
+        rafId.current = requestAnimationFrame(animate);
 
         return () => {
             window.removeEventListener('resize', resize);
             window.removeEventListener('mousemove', handleMouseMove);
-            cancelAnimationFrame(animationId);
+            cancelAnimationFrame(rafId.current);
         };
     }, []);
 

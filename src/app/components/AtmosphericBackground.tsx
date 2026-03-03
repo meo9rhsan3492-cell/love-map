@@ -30,25 +30,18 @@ export function AtmosphericBackground() {
             />
 
             {/* Meteors - reduced on mobile */}
-            <Meteors number={isMobile ? 3 : 10} className="absolute inset-0 pointer-events-none z-0 opacity-50" />
+            <Meteors number={isMobile ? 2 : 5} className="absolute inset-0 pointer-events-none z-0 opacity-40" />
 
             {/* Blur Orbs - DESKTOP ONLY (blur-[100px] is a GPU killer on mobile) */}
             {!isMobile && (
                 <>
-                    <motion.div
-                        className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-pink-300/20 blur-[100px] mix-blend-screen"
-                        animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+                    <div
+                        className="absolute -top-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-pink-300/15 blur-[80px] mix-blend-screen"
+                        style={{ willChange: 'transform' }}
                     />
-                    <motion.div
-                        className="absolute top-[40%] -right-[10%] w-[60%] h-[60%] rounded-full bg-purple-300/20 blur-[120px] mix-blend-screen"
-                        animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
-                        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    />
-                    <motion.div
-                        className="absolute -bottom-[20%] left-[20%] w-[70%] h-[50%] rounded-full bg-amber-200/10 blur-[100px] mix-blend-screen"
-                        animate={{ x: [0, 30, 0], scale: [1, 1.15, 1] }}
-                        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+                    <div
+                        className="absolute top-[40%] -right-[10%] w-[50%] h-[50%] rounded-full bg-purple-300/15 blur-[80px] mix-blend-screen"
+                        style={{ willChange: 'transform' }}
                     />
                 </>
             )}
