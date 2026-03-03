@@ -22,7 +22,7 @@ export function JourneyProgressHUD({ currentIndex, totalCount, locationName, isF
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     className="fixed bottom-24 left-4 z-[900] pointer-events-none"
                 >
-                    <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 min-w-[180px] shadow-2xl">
+                    <div className="bg-black/70 border border-white/10 rounded-2xl px-4 py-3 min-w-[180px] shadow-2xl">
                         {/* Top row: Progress ring + counter */}
                         <div className="flex items-center gap-3">
                             {/* Mini progress ring */}
@@ -62,12 +62,7 @@ export function JourneyProgressHUD({ currentIndex, totalCount, locationName, isF
                                             exit={{ opacity: 0, y: -5 }}
                                             className="flex items-center gap-1.5"
                                         >
-                                            <motion.div
-                                                animate={{ x: [0, 3, 0] }}
-                                                transition={{ duration: 1, repeat: Infinity }}
-                                            >
-                                                <Navigation className="w-3 h-3 text-pink-400" />
-                                            </motion.div>
+                                            <Navigation className="w-3 h-3 text-pink-400" />
                                             <span className="text-xs text-white/70 truncate">飞往</span>
                                         </motion.div>
                                     ) : (
