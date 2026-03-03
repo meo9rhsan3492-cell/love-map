@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useSound } from '@/app/hooks/useSound';
 import type { Memory } from '@/app/types/memory';
@@ -10,6 +10,13 @@ interface UseJourneyProps {
 
 export type JourneyState = 'idle' | 'intro' | 'playing' | 'outro';
 
+/**
+ * Optimized Journey Hook — 3-phase timer instead of 10 setTimeout
+ *
+ * Phase 1: FLIGHT   (fly to location, show trivia)
+ * Phase 2: ARRIVE   (landing burst, stamp, show card)
+ * Phase 3: DEPART   (close card, advance index)
+ */
 export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
     const [journeyState, setJourneyState] = useState<JourneyState>('idle');
     const [journeyIndex, setJourneyIndex] = useState(0);
@@ -22,38 +29,53 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
     const [isFlying, setIsFlying] = useState(false);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
     const { playSuccess, playPop } = useSound();
+    const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-    const handleStartJourney = () => {
+    // Cleanup helper
+    const clearAllTimers = useCallback(() => {
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+    }, []);
+
+    const addTimer = useCallback((fn: () => void, ms: number) => {
+        timersRef.current.push(setTimeout(fn, ms));
+    }, []);
+
+    const handleStartJourney = useCallback(() => {
         toast.info('开启自动巡航模式 🚀', { duration: 2000 });
         playSuccess();
         setJourneyState('intro');
         setJourneyIndex(0);
         onMemorySelect(null);
-    };
+    }, [playSuccess, onMemorySelect]);
 
-    const handleStopJourney = () => {
+    const handleStopJourney = useCallback(() => {
+        clearAllTimers();
         setJourneyState('idle');
         setJourneyIndex(0);
         setIsFlying(false);
+        setShowTrivia(false);
+        setShowShutter(false);
+        setShowBurst(false);
+        setShowStamp(false);
         onMemorySelect(null);
         toast.info('巡航结束 ✨');
-    };
+    }, [clearAllTimers, onMemorySelect]);
 
-    const handleIntroComplete = () => {
+    const handleIntroComplete = useCallback(() => {
         playSuccess();
         setJourneyState('playing');
         setJourneyIndex(0);
         setIsFlying(true);
-    };
+    }, [playSuccess]);
 
-    const handleOutroComplete = () => {
+    const handleOutroComplete = useCallback(() => {
         setJourneyState('idle');
         setJourneyIndex(0);
         setIsFlying(false);
         onMemorySelect(null);
-    };
+    }, [onMemorySelect]);
 
     // Milestone Checker
     useEffect(() => {
@@ -76,19 +98,18 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         }
 
         if (milestoneData) {
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 setActiveMilestone(milestoneData);
                 playSuccess();
-            }, 1000);
-
-            const hideTimer = setTimeout(() => {
-                setActiveMilestone(null);
-            }, 5000);
-            return () => { clearTimeout(timer); clearTimeout(hideTimer); };
+            }, 800);
+            const t2 = setTimeout(() => setActiveMilestone(null), 4000);
+            return () => { clearTimeout(t1); clearTimeout(t2); };
         }
     }, [journeyIndex, journeyState, playSuccess]);
 
-    // Main Journey Loop
+    // ═══════════════════════════════════════════
+    //  Main Journey Loop — 3 PHASES (was 10 setTimeout)
+    // ═══════════════════════════════════════════
     useEffect(() => {
         if (journeyState !== 'playing') return;
 
@@ -101,83 +122,61 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         const currentMemory = memories[journeyIndex];
         if (!currentMemory) return;
 
-        // Start flying phase
-        setIsFlying(true);
-        setShowBurst(false);
+        clearAllTimers();
 
-        // Flight time: 2s desktop, 1.5s mobile (matched to MapRealigner)
         const flightDuration = isMobile ? 1500 : 2000;
-
-        // Trivia: Show during flight (skip on mobile to reduce overlays)
-        if (!isMobile) setShowTrivia(true);
-        const hideTriviaTimeout = setTimeout(() => {
-            setShowTrivia(false);
-        }, flightDuration - 1000);
-
-        // Shutter: Close before landing
-        const shutterStart = setTimeout(() => {
-            setShowShutter(true);
-        }, flightDuration - 400);
-
-        const shutterEnd = setTimeout(() => {
-            setShowShutter(false);
-        }, flightDuration + 100);
-
-        // Arrival burst when landed
-        const burstTimeout = setTimeout(() => {
-            setShowBurst(true);
-            setIsFlying(false);
-        }, flightDuration);
-
-        const hideBurstTimeout = setTimeout(() => {
-            setShowBurst(false);
-        }, flightDuration + 800);
-
-        // Show stamp when landed
-        const stampTimeout = setTimeout(() => {
-            setShowStamp(true);
-            playPop();
-        }, flightDuration + 300);
-
-        const hideStampTimeout = setTimeout(() => {
-            setShowStamp(false);
-        }, flightDuration + 4000);
-
-        // Calculate reading time
-        const textTime = (currentMemory.description?.length || 0) * 200;
-        const mediaTime = (currentMemory.media?.length || 1) * 4000;
-        const viewDuration = Math.min(Math.max(6000, textTime + mediaTime), 25000);
-
+        const textTime = (currentMemory.description?.length || 0) * 150;
+        const mediaTime = (currentMemory.media?.length || 1) * 3000;
+        const viewDuration = Math.min(Math.max(4000, textTime + mediaTime), 15000);
         setCurrentDuration(flightDuration + viewDuration);
 
-        // Open detail exactly when landed
-        const openTimeout = setTimeout(() => {
+        // ── PHASE 1: FLIGHT (batched state update) ──
+        setIsFlying(true);
+        setShowBurst(false);
+        setShowStamp(false);
+        if (!isMobile) setShowTrivia(true);
+
+        // Shutter closes near end of flight
+        addTimer(() => {
+            setShowTrivia(false);
+            setShowShutter(true);
+        }, flightDuration - 300);
+
+        // ── PHASE 2: ARRIVE (single batched update) ──
+        addTimer(() => {
+            // Batch all arrival state changes in one tick
+            setShowShutter(false);
+            setShowBurst(true);
+            setIsFlying(false);
             onMemorySelect(currentMemory);
+            playPop();
         }, flightDuration);
 
-        // Close card before flying
-        const closeCardTimeout = setTimeout(() => {
-            onMemorySelect(null);
-        }, flightDuration + viewDuration - 1500);
+        // Stamp + hide burst together
+        addTimer(() => {
+            setShowBurst(false);
+            setShowStamp(true);
+        }, flightDuration + 600);
 
-        // Next step
-        const nextStepTimeout = setTimeout(() => {
+        // Hide stamp
+        addTimer(() => {
+            setShowStamp(false);
+        }, flightDuration + 3000);
+
+        // ── PHASE 3: DEPART ──
+        addTimer(() => {
+            onMemorySelect(null);
+        }, flightDuration + viewDuration - 800);
+
+        addTimer(() => {
             setJourneyIndex(prev => prev + 1);
         }, flightDuration + viewDuration);
 
-        return () => {
-            clearTimeout(openTimeout);
-            clearTimeout(nextStepTimeout);
-            clearTimeout(closeCardTimeout);
-            clearTimeout(stampTimeout);
-            clearTimeout(hideStampTimeout);
-            clearTimeout(hideTriviaTimeout);
-            clearTimeout(shutterStart);
-            clearTimeout(shutterEnd);
-            clearTimeout(burstTimeout);
-            clearTimeout(hideBurstTimeout);
-        };
-    }, [journeyState, journeyIndex, memories, onMemorySelect, playPop]);
+        return clearAllTimers;
+    }, [journeyState, journeyIndex, memories, onMemorySelect, playPop, clearAllTimers, addTimer, isMobile]);
+
+    // Cleanup on unmount
+    useEffect(() => clearAllTimers, [clearAllTimers]);
 
     return {
         journeyState,
