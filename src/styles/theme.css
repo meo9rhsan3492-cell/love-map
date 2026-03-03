@@ -473,4 +473,22 @@
   .animate-meteor-effect {
     animation: meteor 5s linear infinite;
   }
+
+  /* Journey particle float — GPU transform3d, no JS per frame */
+  @keyframes journeyFloat {
+    0% {
+      transform: translate3d(0, -5vh, 0) rotate(0deg);
+      opacity: 0;
+    }
+    5% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate3d(20px, 110vh, 0) rotate(360deg);
+      opacity: 0;
+    }
+  }
 }

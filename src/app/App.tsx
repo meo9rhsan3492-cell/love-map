@@ -501,29 +501,23 @@ export default function App() {
           journeyState === 'playing' ? (
             <motion.div
               key={`journey-card-${selectedMemory.id}`}
-              initial={{ opacity: 0, y: 80, scale: 0.8 }}
+              initial={{ opacity: 0, y: 60, scale: 0.85 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -60, scale: 0.85, filter: 'blur(6px)' }}
-              transition={{ type: "spring", stiffness: 300, damping: 22, mass: 0.6 }}
+              exit={{ opacity: 0, y: -40, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24, mass: 0.5 }}
               className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-none"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Backdrop blur overlay */}
+              {/* Semi-transparent overlay (NO backdrop-blur → saves GPU) */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 bg-black/40"
               />
-              {/* Glow behind card */}
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 0.5 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ delay: 0.1 }}
-                className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 blur-3xl"
-              />
-              <div className="pointer-events-auto relative z-10">
+              {/* Card glow via box-shadow (NO blur-3xl div → saves GPU) */}
+              <div className="pointer-events-auto relative z-10 drop-shadow-[0_0_40px_rgba(236,72,153,0.15)]">
                 <FloatingMemoryCard memory={selectedMemory} />
               </div>
             </motion.div>

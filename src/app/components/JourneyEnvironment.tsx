@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface JourneyEnvironmentProps {
     active: boolean;
-    memoryDate?: string; // ISO string like "2024-06-15" or "2023-12-25T20:30"
+    memoryDate?: string;
 }
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -77,18 +77,28 @@ function getSeason(month: number): Season {
 function getTimeOfDay(dateStr: string): TimeOfDay {
     const d = new Date(dateStr);
     const hour = d.getHours();
-    // If no time info (midnight exactly + date-only string), infer from season
     if (hour === 0 && !dateStr.includes('T')) {
         const month = d.getMonth() + 1;
-        if (month >= 6 && month <= 8) return 'day'; // summer = bright
-        if (month >= 11 || month <= 2) return 'night'; // winter = dark feel
-        return 'sunset'; // spring/autumn = golden hour vibe
+        if (month >= 6 && month <= 8) return 'day';
+        if (month >= 11 || month <= 2) return 'night';
+        return 'sunset';
     }
     if (hour >= 5 && hour < 8) return 'dawn';
     if (hour >= 8 && hour < 17) return 'day';
     if (hour >= 17 && hour < 20) return 'sunset';
     return 'night';
 }
+
+// ★ Pre-compute star positions ONCE (avoid Math.random in render)
+const STAR_POSITIONS = Array.from({ length: 12 }, (_, i) => ({
+    left: `${(i * 8.3 + 5) % 100}%`,
+    top: `${(i * 7.1 + 3) % 50}%`,
+    duration: 1.5 + (i * 0.37) % 2,
+    delay: (i * 0.5) % 3,
+}));
+
+// ★ Pre-compute particle positions (avoid Math.random in render)
+const PARTICLE_DRIFT = [25, -20, 30, -15, 20];
 
 export function JourneyEnvironment({ active, memoryDate }: JourneyEnvironmentProps) {
     const env = useMemo(() => {
@@ -113,95 +123,64 @@ export function JourneyEnvironment({ active, memoryDate }: JourneyEnvironmentPro
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 1.5, ease: 'easeInOut' }}
+                    transition={{ duration: 1.2, ease: 'easeInOut' }}
                     className="fixed inset-0 pointer-events-none z-[450]"
                     style={{ willChange: 'opacity' }}
                 >
-                    {/* Season gradient overlay */}
-                    <div
-                        className={`absolute inset-0 bg-gradient-to-br ${seasonConfig.gradient}`}
-                        style={{ mixBlendMode: 'soft-light' }}
-                    />
+                    {/* Season gradient — single div, no blend mode overhead */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${seasonConfig.gradient}`} />
 
-                    {/* Day/night overlay */}
-                    <div
-                        className="absolute inset-0"
-                        style={{ background: timeConfig.gradient, opacity: timeConfig.opacity > 0 ? 1 : 0 }}
-                    />
+                    {/* Day/night overlay — single div */}
+                    {timeConfig.opacity > 0 && (
+                        <div className="absolute inset-0" style={{ background: timeConfig.gradient }} />
+                    )}
 
-                    {/* Night stars */}
+                    {/* Night stars — CSS animation only, no Framer per-star */}
                     {env.timeOfDay === 'night' && (
                         <div className="absolute inset-0 overflow-hidden">
-                            {Array.from({ length: 15 }).map((_, i) => (
-                                <motion.div
+                            {STAR_POSITIONS.map((star, i) => (
+                                <div
                                     key={i}
-                                    className="absolute w-1 h-1 rounded-full bg-white"
+                                    className="absolute w-1 h-1 rounded-full bg-white animate-pulse"
                                     style={{
-                                        left: `${Math.random() * 100}%`,
-                                        top: `${Math.random() * 50}%`,
-                                    }}
-                                    animate={{ opacity: [0.3, 0.8, 0.3] }}
-                                    transition={{
-                                        duration: Math.random() * 2 + 1.5,
-                                        repeat: Infinity,
-                                        delay: Math.random() * 2,
+                                        left: star.left,
+                                        top: star.top,
+                                        animationDuration: `${star.duration}s`,
+                                        animationDelay: `${star.delay}s`,
+                                        opacity: 0.6,
                                     }}
                                 />
                             ))}
-                            {/* Moon */}
-                            <div
-                                className="absolute top-[8%] right-[12%] w-10 h-10 rounded-full bg-yellow-100/80 shadow-[0_0_30px_rgba(255,255,200,0.3)]"
-                            />
+                            <div className="absolute top-[8%] right-[12%] w-10 h-10 rounded-full bg-yellow-100/80 shadow-[0_0_20px_rgba(255,255,200,0.25)]" />
                         </div>
                     )}
 
-                    {/* Dawn sun glow */}
-                    {env.timeOfDay === 'dawn' && (
-                        <motion.div
-                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[300px] h-[150px] rounded-full"
-                            style={{
-                                background: 'radial-gradient(ellipse, rgba(255,180,100,0.2) 0%, rgba(255,200,150,0.08) 50%, transparent 80%)',
-                            }}
-                            animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }}
-                            transition={{ duration: 4, repeat: Infinity }}
-                        />
-                    )}
-
-                    {/* Floating seasonal particles */}
+                    {/* Floating particles — pure CSS keyframes, no Framer overhead */}
                     <div className="absolute inset-0 overflow-hidden">
                         {seasonConfig.particles.map((emoji, i) => (
-                            <motion.div
+                            <div
                                 key={i}
                                 className="absolute text-lg"
                                 style={{
                                     left: `${20 + i * 30}%`,
                                     top: '-5%',
                                     willChange: 'transform',
-                                }}
-                                animate={{
-                                    y: ['0vh', '110vh'],
-                                    x: [0, (Math.random() - 0.5) * 60],
-                                    rotate: [0, 360],
-                                }}
-                                transition={{
-                                    duration: 12 + i * 3,
-                                    repeat: Infinity,
-                                    ease: 'linear',
-                                    delay: i * 2,
+                                    animation: `journeyFloat ${10 + i * 4}s linear ${i * 2}s infinite`,
+                                    transform: `translateX(${PARTICLE_DRIFT[i]}px)`,
                                 }}
                             >
                                 {emoji}
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
 
-                    {/* Environment badge */}
+                    {/* Environment badge — no backdrop-blur on small element */}
                     <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ delay: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
-                        className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/30 backdrop-blur-xl px-4 py-2 rounded-full border border-white/15 z-10"
+                        initial={{ opacity: 0, y: -15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                        className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/40 px-4 py-2 rounded-full border border-white/15 z-10"
                     >
                         <span className="text-base">{seasonConfig.emoji}</span>
                         <span className="text-white/90 text-xs font-bold tracking-wider">
