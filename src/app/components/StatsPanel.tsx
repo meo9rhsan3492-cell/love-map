@@ -10,9 +10,9 @@ interface StatsPanelProps {
 const StatCard = ({ icon: Icon, label, value, subValue, color, onClick, size = "small" }: any) => {
     // Soft Romantic Style - Pastel & Cute
     const colorClasses =
-        color === 'pink' ? 'bg-gradient-to-br from-[#ffd1ff] to-[#fad0c4] text-[#d63384]' :
-            color === 'purple' ? 'bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] text-[#6a4c93]' :
-                'bg-gradient-to-br from-[#fff1eb] to-[#ace0f9] text-[#e67e22]'; // blue-orange
+        color === 'pink' ? 'bg-pink-400/15 backdrop-blur-xl border border-pink-200/30 text-pink-600 shadow-[0_8px_32px_rgba(236,72,153,0.1),inset_0_1px_0_rgba(255,255,255,0.4)]' :
+            color === 'purple' ? 'bg-purple-400/15 backdrop-blur-xl border border-purple-200/30 text-purple-600 shadow-[0_8px_32px_rgba(147,51,234,0.1),inset_0_1px_0_rgba(255,255,255,0.4)]' :
+                'bg-blue-400/15 backdrop-blur-xl border border-blue-200/30 text-blue-600 shadow-[0_8px_32px_rgba(59,130,246,0.1),inset_0_1px_0_rgba(255,255,255,0.4)]';
 
     const isLarge = size === 'large';
 

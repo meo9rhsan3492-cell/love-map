@@ -301,7 +301,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-              className="absolute inset-0 z-20 bg-stone-100" // Full screen for wall
+              className="absolute inset-0 z-20 bg-stone-100/80 backdrop-blur-sm"
             >
               <div className="absolute top-6 right-6 z-30">
                 <Button variant="ghost" size="icon" onClick={() => { setMobileView('map'); setDesktopView('map'); }} className="rounded-full bg-black/10 hover:bg-black/20 text-gray-800">
@@ -321,7 +321,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 200, damping: 24, mass: 0.8 }}
-              className="absolute inset-4 bottom-32 md:inset-x-20 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-white/50"
+              className="absolute inset-4 bottom-32 md:inset-x-20 md:top-20 md:bottom-32 bg-white/60 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.6)] z-20 overflow-hidden border border-white/40"
             >
               <div className="h-full overflow-y-auto p-6 md:p-12 custom-scrollbar">
                 <div className="flex justify-between items-center mb-6">
@@ -344,7 +344,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 200, damping: 24, mass: 0.8 }}
-              className="absolute inset-4 bottom-32 md:inset-x-auto md:w-[600px] md:left-1/2 md:-translate-x-1/2 md:top-20 md:bottom-32 bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl z-20 overflow-hidden border border-purple-100"
+              className="absolute inset-4 bottom-32 md:inset-x-auto md:w-[600px] md:left-1/2 md:-translate-x-1/2 md:top-20 md:bottom-32 bg-white/60 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.6)] z-20 overflow-hidden border border-purple-100/40"
             >
               <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-gradient-to-b from-purple-50/50 to-white/50">
                 <div className="flex justify-end mb-2">
@@ -381,11 +381,13 @@ export default function App() {
 
           {/* Top Left: Brand / Title */}
           <div className="absolute top-6 left-6 z-30 pointer-events-none">
-            <h1 className="font-black italic text-3xl md:text-5xl text-white tracking-tighter drop-shadow-lg"
-              style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-              SQ <span className="text-pink-500">♥</span> ZXY
-            </h1>
-            <LoveTimer startDate={settings.startDate} className="text-white/80 mt-2 text-sm font-bold glass-tag inline-block px-3 py-1 rounded-full backdrop-blur-md bg-black/20" />
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl px-5 py-3 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)]">
+              <h1 className="font-black italic text-3xl md:text-5xl text-white tracking-tighter drop-shadow-lg"
+                style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                SQ <span className="text-pink-500">♥</span> ZXY
+              </h1>
+              <LoveTimer startDate={settings.startDate} className="text-white/80 mt-2 text-sm font-bold" />
+            </div>
           </div>
 
           {/* Top Right: Settings */}
@@ -394,7 +396,7 @@ export default function App() {
               variant="ghost"
               size="icon"
               onClick={() => { playPop(); setIsSettingsOpen(true); }}
-              className="rounded-full bg-black/20 text-white hover:bg-black/40 backdrop-blur-md w-10 h-10 md:w-12 md:h-12 border border-white/10"
+              className="rounded-full bg-white/10 text-white hover:bg-white/20 backdrop-blur-xl w-10 h-10 md:w-12 md:h-12 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300"
             >
               <Settings className="w-5 h-5 md:w-6 md:h-6" />
             </Button>
@@ -402,7 +404,7 @@ export default function App() {
 
           {/* BOTTOM NAV BAR - Centered */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
-            <div className="bg-white/90 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center gap-1 md:gap-2">
+            <div className="bg-white/20 backdrop-blur-2xl px-2 py-2 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.4)] border border-white/30 flex items-center gap-1 md:gap-2">
               <NavButton
                 active={(isMobile ? mobileView : desktopView) === 'map'}
                 onClick={() => { setMobileView('map'); setDesktopView('map'); }}
@@ -447,7 +449,7 @@ export default function App() {
                   toast.info('退出定位模式');
                 }
               }}
-              className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-lg flex items-center justify-center border-2 transition-all duration-300 ${isPinning ? 'bg-rose-500 border-white text-white rotate-12 scale-110 ring-4 ring-rose-200' : 'bg-white border-white/50 text-gray-500 hover:bg-gray-50'}`}
+              className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex items-center justify-center border transition-all duration-300 ${isPinning ? 'bg-rose-500/80 backdrop-blur-xl border-white/30 text-white rotate-12 scale-110 ring-4 ring-rose-200/50' : 'bg-white/20 backdrop-blur-xl border-white/30 text-white hover:bg-white/30'}`}
             >
               <MapPin className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
             </motion.button>
@@ -458,7 +460,7 @@ export default function App() {
               whileTap={{ scale: 0.85 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
               onClick={() => { playPop(); setDesktopAddOpen(true); }}
-              className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.4)] flex items-center justify-center text-white border-4 border-white/20"
+              className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-tr from-pink-500/80 to-rose-400/80 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(236,72,153,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center justify-center text-white border border-white/30"
             >
               <Plus className="w-7 h-7 md:w-10 md:h-10" strokeWidth={3} />
             </motion.button>
@@ -471,7 +473,7 @@ export default function App() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-black/40 backdrop-blur-md text-white px-6 py-4 rounded-full border border-white/20 text-center animate-pulse"
+              className="bg-white/10 backdrop-blur-2xl text-white px-6 py-4 rounded-2xl border border-white/20 text-center animate-pulse shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)]"
             >
               <p className="font-bold text-lg">点击图钉按钮开始记录 📍</p>
               <p className="text-sm opacity-80">点亮我们的第一座城市 🌍</p>
@@ -549,12 +551,12 @@ function NavButton({ active, onClick, icon, label }: { active: boolean, onClick:
       transition={{ type: "spring", stiffness: 500, damping: 18 }}
       className={`
                 relative px-4 py-3 rounded-full flex items-center gap-2 transition-colors duration-300
-                ${active ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-100'}
+                ${active ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/10'}
             `}
     >
       {icon}
       <span className={`text-sm font-bold ${!active && 'hidden md:inline'}`}>{label}</span>
-      {active && <motion.div layoutId="nav-bg" className="absolute inset-0 bg-black rounded-full -z-10" transition={{ type: "spring", stiffness: 350, damping: 30 }} />}
+      {active && <motion.div layoutId="nav-bg" className="absolute inset-0 bg-white/25 backdrop-blur-xl rounded-full -z-10 border border-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]" transition={{ type: "spring", stiffness: 350, damping: 30 }} />}
     </motion.button>
   );
 }
