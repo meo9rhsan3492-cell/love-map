@@ -272,7 +272,7 @@ export default function App() {
         </motion.div>
 
         <GlobalClickEffect />
-        {!isMobile && <CursorTrail />}
+        <CursorTrail />
 
         {/* --- FULL SCREEN MAP BACKGROUND --- */}
         <div className="absolute inset-0 z-0 bg-gray-900">
@@ -496,11 +496,12 @@ export default function App() {
           journeyState === 'playing' ? (
             <motion.div
               key={`journey-card-${selectedMemory.id}`}
-              initial={{ opacity: 0, y: 100, scale: 0.7, rotate: -3 }}
-              animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, y: -80, scale: 0.8, rotate: 3, filter: 'blur(8px)' }}
-              transition={{ type: "spring", stiffness: 250, damping: 22, mass: 0.8 }}
+              initial={{ opacity: 0, y: 80, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -60, scale: 0.85, filter: 'blur(6px)' }}
+              transition={{ type: "spring", stiffness: 300, damping: 22, mass: 0.6 }}
               className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-none"
+              style={{ willChange: 'transform, opacity' }}
             >
               {/* Backdrop blur overlay */}
               <motion.div

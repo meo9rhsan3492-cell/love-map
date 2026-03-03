@@ -10,10 +10,12 @@ interface Point {
     size: number;
 }
 
+const COLORS = ['#f472b6', '#fbbf24', '#c084fc', '#fbcfe8', '#fb7185'];
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
 export function CursorTrail() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const points = useRef<Point[]>([]);
-    const mouse = useRef({ x: 0, y: 0 });
     const rafId = useRef(0);
 
     useEffect(() => {
@@ -31,35 +33,63 @@ export function CursorTrail() {
             canvas.height = window.innerHeight * dpr;
             canvas.style.width = `${window.innerWidth}px`;
             canvas.style.height = `${window.innerHeight}px`;
-            ctx.scale(dpr, dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
         resize();
         window.addEventListener('resize', resize, { passive: true });
 
-        const colors = ['#f472b6', '#fbbf24', '#c084fc', '#fbcfe8'];
+        const MAX_PARTICLES = isMobile ? 25 : 40;
+        const THROTTLE_MS = isMobile ? 40 : 25;
 
         let lastAdd = 0;
-        const handleMouseMove = (e: MouseEvent) => {
-            mouse.current = { x: e.clientX, y: e.clientY };
-            // Throttle to every 30ms (was 20ms with 2 particles)
+
+        const addPoint = (x: number, y: number) => {
             const now = performance.now();
-            if (now - lastAdd > 30) {
-                if (points.current.length < 40) { // Cap max particles
-                    points.current.push({
-                        x: e.clientX,
-                        y: e.clientY,
-                        vx: (Math.random() - 0.5) * 1.5,
-                        vy: (Math.random() - 0.5) * 1.5 + 0.8,
-                        life: 1.0,
-                        color: colors[Math.floor(Math.random() * colors.length)],
-                        size: Math.random() * 3 + 2
-                    });
-                }
-                lastAdd = now;
-            }
+            if (now - lastAdd < THROTTLE_MS) return;
+            if (points.current.length >= MAX_PARTICLES) return;
+
+            points.current.push({
+                x,
+                y,
+                vx: (Math.random() - 0.5) * 2,
+                vy: -Math.random() * 2 - 0.5, // Float upward
+                life: 1.0,
+                color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                size: isMobile ? Math.random() * 4 + 3 : Math.random() * 3 + 2,
+            });
+            lastAdd = now;
+        };
+
+        // Desktop: mousemove
+        const handleMouseMove = (e: MouseEvent) => {
+            addPoint(e.clientX, e.clientY);
+        };
+
+        // Mobile: touchmove
+        const handleTouchMove = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            if (touch) addPoint(touch.clientX, touch.clientY);
+        };
+        const handleTouchStart = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            if (touch) addPoint(touch.clientX, touch.clientY);
+        };
+
+        // Draw a heart path
+        const drawHeart = (cx: number, cy: number, size: number) => {
+            const s = size * 1.2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + s * 0.3);
+            ctx.bezierCurveTo(cx, cy, cx - s, cy, cx - s, cy + s * 0.3);
+            ctx.bezierCurveTo(cx - s, cy + s * 0.7, cx, cy + s, cx, cy + s * 1.2);
+            ctx.bezierCurveTo(cx, cy + s, cx + s, cy + s * 0.7, cx + s, cy + s * 0.3);
+            ctx.bezierCurveTo(cx + s, cy, cx, cy, cx, cy + s * 0.3);
+            ctx.fill();
         };
 
         window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        window.addEventListener('touchmove', handleTouchMove, { passive: true });
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
 
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
@@ -71,21 +101,19 @@ export function CursorTrail() {
                 const p = pts[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= 0.025;
-                p.size *= 0.96;
+                p.vy += 0.02; // Tiny gravity
+                p.life -= 0.02;
+                p.size *= 0.97;
 
                 if (p.life <= 0 || p.size < 0.3) continue;
 
-                ctx.globalAlpha = p.life;
+                ctx.globalAlpha = p.life * 0.8;
                 ctx.fillStyle = p.color;
-                // Simple circle instead of complex bezier heart (faster)
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, 6.28);
-                ctx.fill();
+                drawHeart(p.x, p.y, p.size);
 
                 pts[writeIdx++] = p;
             }
-            pts.length = writeIdx; // Efficient splice-free cleanup
+            pts.length = writeIdx;
 
             rafId.current = requestAnimationFrame(animate);
         };
@@ -95,6 +123,8 @@ export function CursorTrail() {
         return () => {
             window.removeEventListener('resize', resize);
             window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchstart', handleTouchStart);
             cancelAnimationFrame(rafId.current);
         };
     }, []);
