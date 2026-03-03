@@ -6,7 +6,7 @@ import { Memory } from '@/app/types/memory';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Heart, Play, StopCircle } from 'lucide-react';
 import { renderToString } from 'react-dom/server';
-import { Button } from '@/app/components/ui/button';
+import { motion } from 'motion/react';
 
 // Fix for default marker icons in React Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -345,22 +345,32 @@ export function MapView({
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/80 to-transparent pointer-events-none z-[400]" />
       <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-[400]" />
 
-      {/* Journey Control FAB -- Left side on mobile, right side on desktop */}
-      <div className="absolute bottom-24 left-4 md:left-auto md:right-8 z-[500] flex flex-col gap-2">
+      {/* Journey Control Button */}
+      <div className="absolute bottom-32 left-4 md:left-8 z-[500]">
         {isPlaying ? (
-          <Button
-            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-500 hover:bg-red-600 shadow-xl border-4 border-white/20 animate-pulse"
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            className="flex items-center gap-2 px-4 py-3 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-xl shadow-[0_8px_32px_rgba(239,68,68,0.3)] border border-white/20 text-white"
             onClick={onStopJourney}
           >
-            <StopCircle className="w-5 h-5 md:w-6 md:h-6 text-white" fill="white" />
-          </Button>
+            <StopCircle className="w-5 h-5" fill="white" />
+            <span className="text-sm font-bold">停止旅程</span>
+          </motion.button>
         ) : (
-          <Button
-            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-xl border-4 border-white/20"
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 backdrop-blur-xl shadow-[0_8px_32px_rgba(236,72,153,0.35)] border border-white/20 text-white"
             onClick={onStartJourney}
           >
-            <Play className="w-5 h-5 md:w-6 md:h-6 text-white ml-0.5" fill="white" />
-          </Button>
+            <Play className="w-5 h-5" fill="white" />
+            <span className="text-sm font-bold">开始旅程</span>
+          </motion.button>
         )}
       </div>
     </div>
