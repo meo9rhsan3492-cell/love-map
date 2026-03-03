@@ -35,6 +35,7 @@ import { JourneyProgressHUD } from '@/app/components/JourneyProgressHUD';
 import { AnniversaryAlert } from '@/app/components/AnniversaryAlert';
 import { DailyLoveNote } from '@/app/components/DailyLoveNote';
 import { SeasonalParticles } from '@/app/components/SeasonalParticles';
+import { JourneyEnvironment } from '@/app/components/JourneyEnvironment';
 
 // Storage now uses IndexedDB via lib/storage.ts
 
@@ -171,6 +172,10 @@ export default function App() {
       <DailyLoveNote />
 
       {/* Cinematic Overlays */}
+      <JourneyEnvironment
+        active={journeyState === 'playing'}
+        memoryDate={journeyState === 'playing' && filteredMemories[journeyIndex] ? filteredMemories[journeyIndex].date : undefined}
+      />
       <CinematicShutter active={showShutter} />
       <TravelTrivia show={showTrivia} />
       <ArrivalBurst active={showBurst} color={journeyIndex % 3 === 0 ? 'gold' : journeyIndex % 3 === 1 ? 'rose' : 'blue'} />
