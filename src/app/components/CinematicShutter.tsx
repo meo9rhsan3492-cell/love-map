@@ -46,7 +46,7 @@ export function CinematicShutter({ active }: CinematicShutterProps) {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: [0, 2], opacity: [0.5, 0] }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-amber-200/30 blur-xl"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-amber-200/20"
                     />
                 </div>
             )}

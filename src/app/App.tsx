@@ -276,8 +276,13 @@ export default function App() {
           <MusicPlayer autoPlayTrigger={!showLanding} />
         </motion.div>
 
-        <GlobalClickEffect />
-        <CursorTrail />
+        {/* Pause canvas effects during journey (hidden behind z-1000 overlay anyway) */}
+        {journeyState !== 'playing' && (
+          <>
+            <GlobalClickEffect />
+            <CursorTrail />
+          </>
+        )}
 
         {/* --- FULL SCREEN MAP BACKGROUND --- */}
         <div className="absolute inset-0 z-0 bg-gray-900">
