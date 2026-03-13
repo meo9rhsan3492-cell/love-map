@@ -9,59 +9,63 @@ interface JourneyEnvironmentProps {
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 type TimeOfDay = 'dawn' | 'day' | 'sunset' | 'night';
 
-const SEASON_CONFIG: Record<Season, { gradient: string; overlay: string; emoji: string; label: string; particles: string[] }> = {
+const SEASON_CONFIG: Record<Season, { gradient: string; overlay: string; emoji: string; label: string; particles: string[]; glow: string }> = {
     spring: {
-        gradient: 'from-green-200/30 via-pink-100/20 to-sky-100/20',
-        overlay: 'rgba(144,238,144,0.08)',
+        gradient: 'from-emerald-300/85 via-green-200/80 to-sky-200/85',
+        overlay: 'rgba(144,238,144,0.2)',
         emoji: '🌸',
         label: '春',
         particles: ['🌸', '🌷', '🦋'],
+        glow: 'rgba(52, 211, 153, 0.3)',
     },
     summer: {
-        gradient: 'from-amber-200/30 via-orange-100/20 to-sky-200/20',
-        overlay: 'rgba(255,200,50,0.08)',
+        gradient: 'from-sky-400/85 via-cyan-200/80 to-amber-100/85',
+        overlay: 'rgba(255,200,50,0.2)',
         emoji: '☀️',
         label: '夏',
         particles: ['✨', '🌻', '🌊'],
+        glow: 'rgba(251, 191, 36, 0.3)',
     },
     autumn: {
-        gradient: 'from-orange-300/30 via-amber-200/20 to-red-100/20',
-        overlay: 'rgba(200,120,50,0.1)',
+        gradient: 'from-orange-400/85 via-amber-300/80 to-yellow-200/85',
+        overlay: 'rgba(200,120,50,0.25)',
         emoji: '🍂',
         label: '秋',
         particles: ['🍂', '🍁', '🌾'],
+        glow: 'rgba(251, 146, 60, 0.3)',
     },
     winter: {
-        gradient: 'from-blue-200/30 via-slate-100/20 to-indigo-100/20',
-        overlay: 'rgba(150,180,220,0.1)',
+        gradient: 'from-indigo-300/90 via-slate-200/85 to-blue-200/90',
+        overlay: 'rgba(150,180,220,0.25)',
         emoji: '❄️',
         label: '冬',
         particles: ['❄️', '🌨️', '⛄'],
+        glow: 'rgba(147, 197, 253, 0.3)',
     },
 };
 
 const TIME_CONFIG: Record<TimeOfDay, { gradient: string; opacity: number; label: string; icon: string }> = {
     dawn: {
-        gradient: 'linear-gradient(180deg, rgba(255,200,150,0.15) 0%, rgba(255,230,200,0.05) 100%)',
-        opacity: 0.3,
+        gradient: 'linear-gradient(180deg, rgba(255,180,120,0.4) 0%, rgba(255,230,200,0.1) 100%)',
+        opacity: 0.6,
         label: '清晨',
         icon: '🌅',
     },
     day: {
-        gradient: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
-        opacity: 0,
+        gradient: 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%)',
+        opacity: 0.2,
         label: '白天',
         icon: '☀️',
     },
     sunset: {
-        gradient: 'linear-gradient(180deg, rgba(255,120,50,0.12) 0%, rgba(200,80,120,0.08) 50%, rgba(80,50,120,0.06) 100%)',
-        opacity: 0.3,
+        gradient: 'linear-gradient(180deg, rgba(255,100,50,0.4) 0%, rgba(200,60,100,0.2) 50%, rgba(80,40,100,0.1) 100%)',
+        opacity: 0.7,
         label: '傍晚',
         icon: '🌇',
     },
     night: {
-        gradient: 'linear-gradient(180deg, rgba(10,10,40,0.35) 0%, rgba(20,20,60,0.2) 50%, rgba(10,10,30,0.15) 100%)',
-        opacity: 0.5,
+        gradient: 'linear-gradient(180deg, rgba(10,10,30,0.8) 0%, rgba(20,20,50,0.6) 50%, rgba(10,10,30,0.8) 100%)',
+        opacity: 0.9,
         label: '夜晚',
         icon: '🌙',
     },
@@ -124,7 +128,7 @@ export function JourneyEnvironment({ active, memoryDate }: JourneyEnvironmentPro
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 1.2, ease: 'easeInOut' }}
-                    className="fixed inset-0 pointer-events-none z-[450]"
+                    className="fixed inset-0 pointer-events-none z-0"
                     style={{ willChange: 'opacity' }}
                 >
                     {/* Season gradient — single div, no blend mode overhead */}

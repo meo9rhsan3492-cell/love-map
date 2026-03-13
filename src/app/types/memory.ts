@@ -27,7 +27,9 @@ export interface Memory {
   latitude: number;
   longitude: number;
   locationName?: string; // e.g. "Shanghai, China" or "Disneyland"
+  location?: string; // 简短地址，用于 AI
   date: string;
+  tags?: string[]; // 标签，用于 AI
   /** @deprecated Use media[] instead */
   imageUrl?: string;
   media: MediaItem[];

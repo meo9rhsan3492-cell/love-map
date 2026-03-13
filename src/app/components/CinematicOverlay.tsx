@@ -98,8 +98,7 @@ export function CinematicOverlay({ type, onComplete, memoriesCount = 0 }: Cinema
             {/* Star field background */}
             <StarField count={isMobile ? 15 : 30} />
 
-            {/* Film Grain */}
-            <div className="absolute inset-0 opacity-15 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+
 
             {/* Vignette */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_85%)]" />

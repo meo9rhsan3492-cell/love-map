@@ -28,6 +28,42 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
   const [isMuted, setIsMuted] = useState(false); // Default muted for journey? Maybe not.
   const [isShareOpen, setIsShareOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [displayLocation, setDisplayLocation] = useState<string>('未知地点');
+
+  // Fetch reverse geocoding for City + District
+  useEffect(() => {
+    if (!memory || !memory.latitude || !memory.longitude) {
+      setDisplayLocation(memory?.locationName || '未知地点');
+      return;
+    }
+
+    let isMounted = true;
+    const apiKey = (import.meta as any).env?.VITE_AMAP_KEY || 'bb3c50005d5d81df2f6d0a7a001a1d95';
+    const url = `https://restapi.amap.com/v3/geocode/regeo?key=${apiKey}&location=${memory.longitude},${memory.latitude}&radius=1000&extensions=base&batch=false`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted && data && data.status === '1' && data.regeocode) {
+          const comp = data.regeocode.addressComponent;
+          const city = comp.city && comp.city.length > 0 ? comp.city : comp.province;
+          const district = comp.district;
+          if (city && district) {
+            setDisplayLocation(`${city} · ${district}`);
+          } else if (city) {
+            setDisplayLocation(city);
+          } else {
+            setDisplayLocation(memory.locationName || '未知地点');
+          }
+        }
+      })
+      .catch(() => {
+        if (isMounted) setDisplayLocation(memory.locationName || '未知地点');
+      });
+
+    return () => { isMounted = false; };
+  }, [memory]);
+
 
   // Normalize Media (Safe even if memory is null)
   const mediaItems: MediaItem[] = memory && memory.media && memory.media.length > 0
@@ -135,25 +171,30 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black overflow-hidden font-sans"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent overflow-hidden font-sans"
         >
           {/* ==========================================
-              1. AMBIENT BACKGROUND LAYER
+              1. AMBIENT BACKGROUND LAYER (letting map/seasons show through)
              ========================================== */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-black/80 backdrop-blur-2xl">
             {backgroundUrl ? (
-              <motion.img
+              <motion.div
                 key={backgroundUrl} // Re-animate on change
-                src={backgroundUrl}
-                initial={{ scale: 1.2, opacity: 0 }}
-                animate={{ scale: 1.1, opacity: 0.4 }}
-                transition={{ duration: 1 }}
-                className="w-full h-full object-cover blur-3xl saturate-150"
-              />
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 flex items-center justify-center overflow-hidden"
+              >
+                <img
+                  src={backgroundUrl}
+                  className="w-1/2 h-1/2 object-cover opacity-40 blur-2xl saturate-150 pointer-events-none"
+                  style={{ transform: 'scale(2.5)', willChange: 'transform' }}
+                />
+              </motion.div>
             ) : (
               <div className={`w-full h-full bg-gradient-to-br ${memory.type === 'memory' ? 'from-pink-900 to-rose-900' : 'from-purple-900 to-indigo-900'} opacity-50`} />
             )}
-            <div className="absolute inset-0 bg-black/40" /> {/* Dimmer */}
+            <div className="absolute inset-0 bg-black/60" /> {/* Dimmer */}
           </div>
 
           {/* ==========================================
@@ -256,7 +297,7 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
               {/* PASSPORT STAMP (Journey Mode Only) */}
               {isJourneyMode && (
                 <PassportStamp
-                  locationName={memory.locationName || '未知地点'}
+                  locationName={displayLocation}
                   date={memory.date}
                   index={Math.floor(Math.random() * 5)}
                   className="absolute right-[10%] bottom-[25%] sm:bottom-[15%] sm:right-[15%] flex items-center justify-center transform -rotate-12 scale-75 sm:scale-100 origin-bottom-right"
@@ -290,7 +331,7 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
                   title="点击编辑地点"
                 >
                   <MapPin className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
-                  <span>{memory.locationName || '添加地点 (Add Location)...'}</span>
+                  <span>{displayLocation}</span>
                 </div>
               </div>
 
@@ -364,10 +405,10 @@ export function MemoryDetail({ memory, isOpen, onClose, onEdit, onDelete, isJour
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                       <div className="text-white/40 text-xs uppercase tracking-widest mb-2">Location</div>
                       <div className="font-mono text-white/80 text-sm">
-                        {memory.locationName ? (
+                        {displayLocation ? (
                           <span className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-pink-400" />
-                            {memory.locationName}
+                            {displayLocation}
                           </span>
                         ) : (
                           <span className="opacity-50">

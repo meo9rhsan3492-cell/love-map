@@ -278,10 +278,14 @@ export function canvasFractalErosion(
     const EDGE_WIDTH = 0.06;
     const threshold = progress * 1.3;
 
-    for (let y = 0; y < h; y += 2) { // Skip rows for performance
-        for (let x = 0; x < w; x += 2) {
+    // Optimization: Skip more rows/cols on slower devices (CPU bounded fallback)
+    const step = w > 800 ? 4 : 2;
+
+    for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
             const ux = x / w, uy = y / h;
-            const noise = fbm2D(ux * 8, uy * 8) * 0.6;
+            // Lower octave count for fallback to save CPU 
+            const noise = fbm2D(ux * 8, uy * 8, 3) * 0.6;
 
             let mask: number;
             if (direction === 0) mask = Math.sqrt((ux - 0.5) ** 2 + (uy - 0.5) ** 2) * 1.6;
@@ -297,9 +301,15 @@ export function canvasFractalErosion(
                 // Edge glow
                 const idx = (y * w + x) * 4;
                 const glow = (1 - (erosion - (threshold - EDGE_WIDTH)) / EDGE_WIDTH) * 0.7;
-                data[idx] = Math.min(255, data[idx] + edgeColor[0] * 255 * glow);
-                data[idx + 1] = Math.min(255, data[idx + 1] + edgeColor[1] * 255 * glow);
-                data[idx + 2] = Math.min(255, data[idx + 2] + edgeColor[2] * 255 * glow);
+                // Bitwise clamp for slight speedup over Math.min
+                data[idx] = (data[idx] + edgeColor[0] * 255 * glow) | 0;
+                data[idx + 1] = (data[idx + 1] + edgeColor[1] * 255 * glow) | 0;
+                data[idx + 2] = (data[idx + 2] + edgeColor[2] * 255 * glow) | 0;
+
+                // Fast clamp to 255
+                if (data[idx] > 255) data[idx] = 255;
+                if (data[idx + 1] > 255) data[idx + 1] = 255;
+                if (data[idx + 2] > 255) data[idx + 2] = 255;
             }
         }
     }

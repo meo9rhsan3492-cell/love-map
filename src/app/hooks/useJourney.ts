@@ -136,6 +136,16 @@ export function useJourney({ memories, onMemorySelect }: UseJourneyProps) {
         setShowStamp(false);
         if (!isMobile) setShowTrivia(true);
 
+        // Pre-fetch the image for the current memory to prevent
+        // main-thread blocking (PPT stuttering) when the card renders
+        if (currentMemory.imageUrl || (currentMemory.media && currentMemory.media[0]?.url)) {
+            const url = currentMemory.imageUrl || currentMemory.media?.[0]?.url;
+            if (url) {
+                const img = new Image();
+                img.src = url;
+            }
+        }
+
         // Shutter closes near end of flight
         addTimer(() => {
             setShowTrivia(false);

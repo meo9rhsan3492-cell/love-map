@@ -87,7 +87,7 @@ export function useJourneyOrchestrator(memories: Memory[]) {
         cancelAnimationFrame(transitionRaf.current);
         transitionStart.current = performance.now();
 
-        const toState = computeSeasonState(toProgress, toDayProgress);
+
 
         setBgState(prev => ({
             ...prev,
@@ -142,7 +142,8 @@ export function useJourneyOrchestrator(memories: Memory[]) {
 
     // ────── 主播放循环 ──────
 
-    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+    const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const nextStepTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const playStep = useCallback((index: number) => {
         if (index >= memories.length) {
@@ -182,7 +183,7 @@ export function useJourneyOrchestrator(memories: Memory[]) {
         const viewDuration = Math.min(Math.max(5000, textTime + mediaTime), 20000);
         const totalStepTime = flightDuration + viewDuration;
 
-        setTimeout(() => {
+        nextStepTimerRef.current = setTimeout(() => {
             setCurrentIndex(index + 1);
         }, totalStepTime);
     }, [memories, transitionBackground, showPhoto, hidePhoto]);
@@ -211,6 +212,7 @@ export function useJourneyOrchestrator(memories: Memory[]) {
 
     const stop = useCallback(() => {
         clearTimeout(timerRef.current);
+        clearTimeout(nextStepTimerRef.current);
         cancelAnimationFrame(transitionRaf.current);
         setPhase('idle');
         setCurrentIndex(0);
@@ -221,6 +223,7 @@ export function useJourneyOrchestrator(memories: Memory[]) {
     useEffect(() => {
         return () => {
             clearTimeout(timerRef.current);
+            clearTimeout(nextStepTimerRef.current);
             cancelAnimationFrame(transitionRaf.current);
         };
     }, []);

@@ -36,12 +36,15 @@ import { AnniversaryAlert } from '@/app/components/AnniversaryAlert';
 import { DailyLoveNote } from '@/app/components/DailyLoveNote';
 import { SeasonalParticles } from '@/app/components/SeasonalParticles';
 import { JourneyEnvironment } from '@/app/components/JourneyEnvironment';
+import { AIMemoryButton } from '@/app/components/AIMemoryAssistant';
+import { AISuggestionButton } from '@/app/components/AISuggestionPanel';
 
 // Storage now uses IndexedDB via lib/storage.ts
 
 export default function App() {
   const [memories, setMemories] = useState<Memory[]>([]);
-  const [showLanding, setShowLanding] = useState(true);
+  const hasMemories = memories.length > 0;
+  const [showLanding, setShowLanding] = useState(!hasMemories);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
@@ -162,12 +165,65 @@ export default function App() {
     handleStartJourney();
   };
 
+  // Custom Hook to fetch display location for letterbox overlay
+  const [currentDisplayLocation, setCurrentDisplayLocation] = useState<string>('未知地点');
+
+  useEffect(() => {
+    if (journeyState !== 'playing' || !filteredMemories[journeyIndex]) {
+      return;
+    }
+
+    const memory = filteredMemories[journeyIndex];
+    if (!memory.latitude || !memory.longitude) {
+      setCurrentDisplayLocation(memory.locationName || '未知地点');
+      return;
+    }
+
+    let isMounted = true;
+    const apiKey = (import.meta as any).env?.VITE_AMAP_KEY || 'bb3c50005d5d81df2f6d0a7a001a1d95';
+    const url = `https://restapi.amap.com/v3/geocode/regeo?key=${apiKey}&location=${memory.longitude},${memory.latitude}&radius=1000&extensions=base&batch=false`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted && data && data.status === '1' && data.regeocode) {
+          const comp = data.regeocode.addressComponent;
+          const city = comp.city && comp.city.length > 0 ? comp.city : comp.province;
+          const district = comp.district;
+          if (city && district) {
+            setCurrentDisplayLocation(`${city} · ${district}`);
+          } else if (city) {
+            setCurrentDisplayLocation(city);
+          } else {
+            setCurrentDisplayLocation(memory.locationName || '未知地点');
+          }
+        }
+      })
+      .catch(() => {
+        if (isMounted) setCurrentDisplayLocation(memory.locationName || '未知地点');
+      });
+
+    return () => { isMounted = false; };
+  }, [journeyIndex, journeyState, filteredMemories]);
+
   // Journey Logic handled by useJourney hook
 
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-900 text-editorial overflow-hidden font-sans selection:bg-rose-200 relative">
-      <AtmosphericBackground />
-      <SeasonalParticles />
+      <AnimatePresence>
+        {journeyState !== 'playing' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0 z-0 pointer-events-none"
+          >
+            <AtmosphericBackground />
+            <SeasonalParticles />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnniversaryAlert startDate={settings.startDate} />
       <DailyLoveNote />
 
@@ -233,7 +289,7 @@ export default function App() {
                 className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]"
               />
               <span className="text-white/30 text-[10px] font-mono px-4">
-                {filteredMemories[journeyIndex]?.locationName || '...'}
+                {currentDisplayLocation}
               </span>
             </motion.div>
           </>
@@ -245,6 +301,8 @@ export default function App() {
         currentIndex={journeyIndex}
         totalCount={filteredMemories.length}
         locationName={filteredMemories[journeyIndex]?.locationName}
+        latitude={filteredMemories[journeyIndex]?.latitude}
+        longitude={filteredMemories[journeyIndex]?.longitude}
         isFlying={isFlying}
         show={journeyState === 'playing'}
       />
@@ -285,21 +343,18 @@ export default function App() {
         )}
 
         {/* --- FULL SCREEN MAP BACKGROUND --- */}
-        <div className="absolute inset-0 z-0 bg-gray-900">
-          {/* --- FULL SCREEN MAP BACKGROUND --- */}
-          <div className="absolute inset-0 z-0 bg-gray-900">
-            {/* Sort memories for correct journey order (Time Ascending) */}
-            <MapView
-              memories={filteredMemories}
-              activeMemory={journeyState === 'playing' ? filteredMemories[journeyIndex] : null}
-              isPlaying={journeyState === 'playing'}
-              isPaused={showLanding} // Pause heavy map effects while on landing page
-              onMarkerClick={handleMarkerClick}
-              onMapClick={handleMapClick}
-              onStartJourney={onStartJourneyClick}
-              onStopJourney={handleStopJourney}
-            />
-          </div>
+        <div className={`absolute inset-0 z-0 ${journeyState === 'playing' ? 'bg-transparent' : 'bg-gray-900'}`}>
+          {/* Sort memories for correct journey order (Time Ascending) */}
+          <MapView
+            memories={filteredMemories}
+            activeMemory={journeyState === 'playing' ? filteredMemories[journeyIndex] : null}
+            isPlaying={journeyState === 'playing'}
+            isPaused={showLanding} // Pause heavy map effects while on landing page
+            onMarkerClick={handleMarkerClick}
+            onMapClick={handleMapClick}
+            onStartJourney={onStartJourneyClick}
+            onStopJourney={handleStopJourney}
+          />
         </div>
 
         {/* --- OVERLAYS --- */}
@@ -506,21 +561,13 @@ export default function App() {
           journeyState === 'playing' ? (
             <motion.div
               key={`journey-card-${selectedMemory.id}`}
-              initial={{ opacity: 0, y: 60, scale: 0.85 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -40, scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 300, damping: 24, mass: 0.5 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "tween", ease: "circOut", duration: 0.4 }}
               className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-none"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Semi-transparent overlay (NO backdrop-blur → saves GPU) */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 bg-black/40"
-              />
               {/* Card glow via box-shadow (NO blur-3xl div → saves GPU) */}
               <div className="pointer-events-auto relative z-10 drop-shadow-[0_0_40px_rgba(236,72,153,0.15)]">
                 <FloatingMemoryCard memory={selectedMemory} />
@@ -541,6 +588,10 @@ export default function App() {
           )
         )}
       </AnimatePresence>
+
+      {/* AI 功能按钮 */}
+      <AIMemoryButton memories={memories} />
+      <AISuggestionButton memories={memories} />
     </div>
   );
 }

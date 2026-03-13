@@ -36,7 +36,7 @@ export function TravelTrivia({ show }: TravelTriviaProps) {
                         animate={{ opacity: 1, x: 0, rotate: -2 }}
                         exit={{ opacity: 0, x: 50, scale: 0.9 }}
                         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                        className="bg-white/90 backdrop-blur-md border border-white/40 shadow-xl rounded-2xl p-4 max-w-xs rotate-2 origin-top-right transform hover:rotate-0 transition-transform duration-500"
+                        className="bg-white/95 border border-white shadow-xl rounded-2xl p-4 max-w-xs rotate-2 origin-top-right transform hover:rotate-0 transition-transform duration-500"
                     >
                         <div className="flex items-start gap-3">
                             <div className="bg-rose-100/50 p-2 rounded-full text-rose-500">
@@ -51,7 +51,7 @@ export function TravelTrivia({ show }: TravelTriviaProps) {
                         </div>
 
                         {/* Decorative tape */}
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-yellow-200/40 backdrop-blur-sm -rotate-2 transform" />
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-yellow-200/60 -rotate-2 transform" />
                     </motion.div>
                 </div>
             )}

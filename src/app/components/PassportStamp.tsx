@@ -35,11 +35,9 @@ export function PassportStamp({ locationName, date, index, className }: Passport
                     damping: 25, // Less bounce, more heavy "thud"
                     mass: 2
                 }}
-                className={`w-[400px] h-[400px] rounded-full border-8 border-double ${colorClass} flex flex-col items-center justify-center p-8 backdrop-blur-sm bg-white/20 mix-blend-multiply shadow-2xl origin-center`}
+                className={`w-[400px] h-[400px] rounded-full border-8 border-double ${colorClass} flex flex-col items-center justify-center p-8 shadow-xl origin-center`}
                 style={{ x: offsetX, y: offsetY }}
             >
-                {/* Grunge Texture Overlay for Realism */}
-                <div className="absolute inset-0 opacity-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay rounded-full" />
 
                 <div className="text-sm font-mono uppercase tracking-[0.5em] font-bold opacity-80 mb-4 border-b-2 border-current pb-2 w-3/4 text-center">
                     VISA ARRIVAL

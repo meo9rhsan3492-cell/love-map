@@ -64,13 +64,21 @@ function getSeasonKey(progress: number): string {
     return ['spring', 'summer', 'autumn', 'winter'][idx];
 }
 
+const STARS = Array.from({ length: 20 }).map(() => ({
+    x: Math.random(),
+    y: Math.random() * 0.6,
+    offset: Math.random() * Math.PI * 2,
+    speed: 1.5 + Math.random() * 2,
+}));
+
 // ────── Canvas 天空渲染器 ──────
 
 function renderSky(
     ctx: CanvasRenderingContext2D,
     w: number, h: number,
     palette: SeasonPalette,
-    dayProgress: number
+    dayProgress: number,
+    time: number
 ) {
     // 天空渐变
     const grad = ctx.createLinearGradient(0, 0, 0, h);
@@ -87,6 +95,27 @@ function renderSky(
             : (0.2 - dayProgress) / 0.2 * 0.5;
         ctx.fillStyle = `rgba(10, 10, 35, ${nightAlpha})`;
         ctx.fillRect(0, 0, w, h);
+
+        const elementAlpha = Math.min(nightAlpha * 2, 1);
+
+        // 绘制星星
+        STARS.forEach(star => {
+            const opacity = 0.2 + (Math.sin(time / star.speed + star.offset) * 0.5 + 0.5) * 0.6;
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity * elementAlpha})`;
+            ctx.beginPath();
+            ctx.arc(star.x * w, star.y * h, w > 768 ? 2 : 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // 绘制月亮
+        ctx.fillStyle = `rgba(255, 255, 200, ${0.8 * elementAlpha})`;
+        ctx.shadowColor = `rgba(255, 255, 200, ${0.4 * elementAlpha})`;
+        ctx.shadowBlur = 40 * elementAlpha;
+        ctx.beginPath();
+        const moonRadius = Math.min(w, h) * 0.03 + 12;
+        ctx.arc(w * 0.85, h * 0.08, moonRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
     } else if (dayProgress > 0.7 && dayProgress <= 0.85) {
         // 黄昏暖色
         const sunsetAlpha = (dayProgress - 0.7) / 0.15 * 0.15;
@@ -122,7 +151,7 @@ export const BackgroundLayer = memo(function BackgroundLayer({ state, active }: 
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         const render = () => {
-            renderSky(ctx, w, h, palette, state.dayProgress);
+            renderSky(ctx, w, h, palette, state.dayProgress, performance.now() / 1000);
             rafId.current = requestAnimationFrame(render);
         };
         rafId.current = requestAnimationFrame(render);
@@ -143,6 +172,30 @@ export const BackgroundLayer = memo(function BackgroundLayer({ state, active }: 
                 className="absolute inset-0"
             />
 
+            {/* L0: 云层效果 - 增加层次感 */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <style>{`
+                    @keyframes cloud-drift {
+                        0% { transform: translateX(-100%); }
+                        100% { transform: translateX(calc(100vw + 100%)); }
+                    }
+                    .cloud-layer-1 { animation: cloud-drift 45s linear infinite; opacity: 0.15; }
+                    .cloud-layer-2 { animation: cloud-drift 65s linear infinite; opacity: 0.1; }
+                    .cloud-layer-3 { animation: cloud-drift 85s linear infinite; opacity: 0.08; }
+                `}</style>
+                <div className="cloud-layer-1 absolute top-[10%] left-0 right-0 h-32">
+                    <div className="absolute left-[10%] top-0 w-48 h-16 bg-white rounded-full blur-xl" />
+                    <div className="absolute left-[20%] top-4 w-32 h-12 bg-white rounded-full blur-lg" />
+                </div>
+                <div className="cloud-layer-2 absolute top-[20%] left-0 right-0 h-24">
+                    <div className="absolute left-[60%] top-0 w-56 h-20 bg-white rounded-full blur-xl" />
+                    <div className="absolute left-[75%] top-6 w-40 h-14 bg-white rounded-full blur-lg" />
+                </div>
+                <div className="cloud-layer-3 absolute top-[15%] left-0 right-0 h-20">
+                    <div className="absolute left-[35%] top-2 w-40 h-14 bg-white rounded-full blur-xl" />
+                </div>
+            </div>
+
             {/* L0.1: 季节色调叠加 (CSS 过渡) */}
             <AnimatePresence mode="wait">
                 <motion.div
@@ -159,6 +212,14 @@ export const BackgroundLayer = memo(function BackgroundLayer({ state, active }: 
                 />
             </AnimatePresence>
 
+            {/* L0.15: 光晕效果 - 增加氛围感 */}
+            <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background: 'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255,200,150,0.15) 0%, transparent 70%)',
+                }}
+            />
+
             {/* L0.2: 底部地面色带 */}
             <motion.div
                 className="absolute bottom-0 inset-x-0 h-1/4"
@@ -168,57 +229,41 @@ export const BackgroundLayer = memo(function BackgroundLayer({ state, active }: 
                 transition={{ duration: 2 }}
             />
 
-            {/* L0.3: 飘落粒子 (纯CSS, 零照片数据) */}
+            {/* L0.3: 飘落粒子 (纯CSS, 零主线程开销) */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {palette.particles.map((emoji, i) => (
-                    <motion.div
-                        key={`${seasonKey}-particle-${i}`}
-                        className="absolute text-xl"
-                        style={{
-                            left: `${10 + i * 22}%`,
-                            top: '-5%',
-                            willChange: 'transform',
-                        }}
-                        animate={{
-                            y: ['0vh', '110vh'],
-                            x: [0, (i % 2 === 0 ? 1 : -1) * 30],
-                            rotate: [0, 360 * (i % 2 === 0 ? 1 : -1)],
-                        }}
-                        transition={{
-                            duration: 10 + i * 4,
-                            repeat: Infinity,
-                            ease: 'linear',
-                            delay: i * 1.5,
-                        }}
-                    >
-                        {emoji}
-                    </motion.div>
-                ))}
+                <style>{`
+                    @keyframes particle-fall {
+                        0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { transform: translateY(110vh) translateX(var(--drift)) rotate(var(--rot)); opacity: 0; }
+                    }
+                `}</style>
+                {palette.particles.map((emoji, i) => {
+                    const duration = 10 + i * 4;
+                    const delay = i * 1.5;
+                    const drift = (i % 2 === 0 ? 1 : -1) * 30;
+                    const rot = 360 * (i % 2 === 0 ? 1 : -1);
+                    return (
+                        <div
+                            key={`${seasonKey}-particle-${i}`}
+                            className="absolute text-xl"
+                            style={{
+                                left: `${10 + i * 22}%`,
+                                top: 0,
+                                '--drift': `${drift}px`,
+                                '--rot': `${rot}deg`,
+                                animation: `particle-fall ${duration}s linear ${delay}s infinite`,
+                                willChange: 'transform, opacity',
+                            } as React.CSSProperties}
+                        >
+                            {emoji}
+                        </div>
+                    );
+                })}
             </div>
 
-            {/* L0.4: 夜间星空 */}
-            {(state.dayProgress < 0.2 || state.dayProgress > 0.85) && (
-                <div className="absolute inset-0 overflow-hidden">
-                    {Array.from({ length: 20 }).map((_, i) => (
-                        <motion.div
-                            key={`star-${i}`}
-                            className="absolute w-1 h-1 rounded-full bg-white"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 60}%`,
-                            }}
-                            animate={{ opacity: [0.2, 0.8, 0.2] }}
-                            transition={{
-                                duration: 1.5 + Math.random() * 2,
-                                repeat: Infinity,
-                                delay: Math.random() * 3,
-                            }}
-                        />
-                    ))}
-                    {/* 月亮 */}
-                    <div className="absolute top-[8%] right-[15%] w-12 h-12 rounded-full bg-yellow-100/80 shadow-[0_0_40px_rgba(255,255,200,0.4)]" />
-                </div>
-            )}
+            {/* L0.4: 夜间星空 (已被 Canvas 整合，节省约21个 DOM 节点和对应的 framer-motion 渲染开销) */}
 
             {/* L0.5: 环境标签 */}
             <motion.div

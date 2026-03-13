@@ -56,7 +56,7 @@ function MapRealigner({ activeMemory }: { activeMemory?: Memory | null }) {
     const currentCenter = map.getCenter();
     const distance = currentCenter.distanceTo(targetLatLng);
 
-    // If very close (<5km), just pan smoothly without zoom change
+    // If very close (<5km), pan quickly
     if (distance < 5000 && prevRef.current) {
       map.panTo(targetLatLng, {
         animate: true,
@@ -65,12 +65,12 @@ function MapRealigner({ activeMemory }: { activeMemory?: Memory | null }) {
         noMoveStart: true, // Don't invalidate tiles at start
       });
     } else {
-      // Fly with moderate zoom (12, not extreme 17)
-      // Shorter duration = less time showing grey tiles
-      map.flyTo(targetLatLng, 12, {
+      // For longer distances, use setView to slide smoothly at current zoom
+      // flyTo causes parabolic zoom out/in, which downloads hundreds of tiles and kills FPS
+      map.setView(targetLatLng, map.getZoom(), {
         animate: true,
-        duration: isMobile ? 1 : 1.5,
-        easeLinearity: 0.35,
+        duration: isMobile ? 1.5 : 2.0,
+        easeLinearity: 0.25,
         noMoveStart: true,
       });
     }
@@ -114,9 +114,25 @@ const RadiantAuraLayer = ({ memories, hoveredMemoryId, isPaused, isJourneyPlayin
     const draw = () => {
       if (!ctx) return;
 
-      // Frame throttling: mobile ~30fps, journey mode ~10fps
+      // Frame throttling: mobile ~30fps, journey mode ~15fps
       frameCountRef.current++;
-      const skipRate = isMobileDevice ? 2 : 1; // Mobile: every 2nd frame
+
+      // Dynamic throttle: 
+      // 1 (60fps) if hovering on desktop
+      // 2 (30fps) baseline mobile
+      // 3 (20fps) baseline desktop idle
+      // 4 (15fps) during journey playback (background effect)
+      let skipRate = 2;
+      if (isJourneyPlaying) {
+        skipRate = 4;
+      } else if (isMobileDevice) {
+        skipRate = 2; // Keep at 30fps for smooth mobile scrolling
+      } else if (hoveredIdRef.current) {
+        skipRate = 1; // 60fps for smooth hover interaction
+      } else {
+        skipRate = 3; // 20fps for background idle desktop
+      }
+
       if (frameCountRef.current % skipRate !== 0) {
         frameRef.current = requestAnimationFrame(draw);
         return;
@@ -292,20 +308,20 @@ export function MapView({
   }, [sortedMemories]);
 
   return (
-    <div className="h-full w-full rounded-[2rem] overflow-hidden shadow-inner border border-white/50 relative z-0">
+    <div className={`h-full w-full rounded-[2rem] overflow-hidden shadow-inner border border-white/50 relative z-0 ${isPlaying ? 'bg-transparent' : 'bg-gray-900'}`}>
       <MapContainer
         center={[31.2304, 121.4737]}
         zoom={13}
         minZoom={3} // Prevent zooming out to grey void
         maxZoom={20} // Allow deep zoom
-        className="h-full w-full bg-[#faf5f0]"
+        className={`h-full w-full ${isPlaying ? 'bg-transparent' : 'bg-[#1a1a2ev]'}`}
         zoomControl={false}
       >
         <TileLayer
           url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
           subdomains={['1', '2', '3', '4']}
           attribution='&copy; <a href="https://amap.com">高德地图</a>'
-          className="saturate-[1.1] contrast-[1.05]"
+          className={isPlaying ? "mix-blend-screen opacity-100 saturate-[1.2]" : "saturate-[1.1] contrast-[1.05]"}
           opacity={1}
           maxNativeZoom={18}
           maxZoom={20}
